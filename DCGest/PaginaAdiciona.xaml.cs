@@ -185,12 +185,6 @@ namespace DCGest
 
         private void InserirOrientador(Orientador orientador)
         {
-            if (orientador.Nome_Orientador == string.Empty)
-            {
-                MessageBox.Show("Preencha o nome do Orientador!");
-                return;
-            }
-
             try
             {
                 using (MySqlConnection conexao = new MySqlConnection(caminho))
@@ -250,20 +244,20 @@ namespace DCGest
                     }
                     else // Orientador
                     {
-                    if (txtNomeOri.Text != string.Empty)
-                    {
-                        MessageBox.Show("Preencha o nome do Orientador!");
-                        return;
+                        if (txtNomeOri.Text == string.Empty)
+                        {
+                            MessageBox.Show("Preencha o nome do Orientador!");
+                            return;
+                        }
+
+                        Orientador novoOri = new Orientador
+                        {
+                            Nome_Orientador = txtNomeOri.Text.Trim()
+                        };
+
+                        InserirOrientador(novoOri);
+
                     }
-
-                    Orientador novoOri = new Orientador
-                    {
-                        Nome_Orientador = txtNomeOri.Text.Trim()
-                    };
-
-                    InserirOrientador(novoOri);
-
-                }
             }
             catch (Exception ex)
             {
