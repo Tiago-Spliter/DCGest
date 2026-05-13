@@ -152,24 +152,72 @@ namespace DCGest
                 {
                     conexao.Open();
 
-                    string InserirA = @"INSERT INTO aluno (Cod_Aluno, Nome_Aluno, Turma, Cod_Curso, Estado_Estagio, Cod_Ori, Ano_Letivo) 
-                                        VALUES (@Cod, @Nome, @Turma, @Curso, @Estado_Estagio, @Orientador, @Ano)";
-
-                    using (MySqlCommand comando = new MySqlCommand(InserirA, conexao))
+                    using (MySqlTransaction transacao = conexao.BeginTransaction())
                     {
-                        comando.Parameters.AddWithValue("@Cod", aluno.Cod_Aluno);
-                        comando.Parameters.AddWithValue("@Nome", aluno.Nome_Aluno);
-                        comando.Parameters.AddWithValue("@Turma", aluno.Turma);
-                        comando.Parameters.AddWithValue("@Curso", aluno.Cod_Curso);
-                        comando.Parameters.AddWithValue("@Estado_Estagio", aluno.Estado_Estagio);
-                        comando.Parameters.AddWithValue("@Orientador", aluno.Cod_Ori);
-                        comando.Parameters.AddWithValue("@Ano", aluno.Ano_Letivo);
+                        try
+                        {
+                            // 1. Inserir o Aluno
+                            string InserirA = @"INSERT INTO aluno (Cod_Aluno, Nome_Aluno, Turma, Cod_Curso, Estado_Estagio, Cod_Ori, Ano_Letivo) 
+                                                VALUES (@Cod, @Nome, @Turma, @Curso, @Estado_Estagio, @Orientador, @Ano)";
 
-                        comando.ExecuteNonQuery();
+                            using (MySqlCommand comando = new MySqlCommand(InserirA, conexao, transacao))
+                            {
+                                comando.Parameters.AddWithValue("@Cod", aluno.Cod_Aluno);
+                                comando.Parameters.AddWithValue("@Nome", aluno.Nome_Aluno);
+                                comando.Parameters.AddWithValue("@Turma", aluno.Turma);
+                                comando.Parameters.AddWithValue("@Curso", aluno.Cod_Curso);
+                                comando.Parameters.AddWithValue("@Estado_Estagio", aluno.Estado_Estagio);
+                                comando.Parameters.AddWithValue("@Orientador", aluno.Cod_Ori);
+                                comando.Parameters.AddWithValue("@Ano", aluno.Ano_Letivo);
+
+                                comando.ExecuteNonQuery();
+                            }
+
+                            string sql_Modulos = @"SELECT m.Cod_Modulo, d.Ano 
+                                                   FROM Modulos m 
+                                                   INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc 
+                                                   WHERE d.Cod_Curso = @Curso";
+
+                            Dictionary<int, string> Modulos = new Dictionary<int, string>();
+
+                            using (MySqlCommand comando = new MySqlCommand(sql_Modulos, conexao, transacao))
+                            {
+                                comando.Parameters.AddWithValue("@Curso", aluno.Cod_Curso);
+
+                                using (MySqlDataReader leitor = comando.ExecuteReader())
+                                {
+                                    while (leitor.Read())
+                                    {
+                                        Modulos.Add(Convert.ToInt32(leitor["Cod_Modulo"]), leitor["Ano"].ToString());
+                                    }
+                                }
+                            }
+
+                            string sql_InserirNota = "INSERT INTO NotaMod (Cod_Aluno, Cod_Modulo, Ano) VALUES (@Aluno, @Modulo, @Ano)";
+
+                            foreach (var mod in Modulos)
+                            {
+                                using (MySqlCommand comando = new MySqlCommand(sql_InserirNota, conexao, transacao))
+                                {
+                                    comando.Parameters.AddWithValue("@Aluno", aluno.Cod_Aluno);
+                                    comando.Parameters.AddWithValue("@Modulo", mod.Key);
+                                    comando.Parameters.AddWithValue("@Ano", mod.Value);
+
+                                    comando.ExecuteNonQuery();
+                                }
+                            }
+
+                            transacao.Commit();
+                            MessageBox.Show("Aluno e registos de notas inseridos com sucesso!");
+                        }
+                        catch (Exception ex)
+                        {
+                            transacao.Rollback();
+                            MessageBox.Show("Não foi possivel adicionar aluno: " + ex.Message);
+                        }
                     }
                 }
 
-                MessageBox.Show("Aluno inserido com sucesso!");
                 txtCodAluno.Text = string.Empty;
                 txtNomeAluno.Text = string.Empty;
                 txtNomeOri.Text = string.Empty;

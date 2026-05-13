@@ -100,7 +100,6 @@ namespace DCGest
                                 n.NomeModulo = leitor["Modulo"].ToString();
                                 n.NomeDisciplina = leitor["Disciplina"].ToString();
 
-                                // Usar 'as' para evitar o erro de cast com DBNull
                                 n.Valor = leitor["Valor"] as int?;
                                 n.Data_Efetua = leitor["Data_Efetua"] as DateTime?;
 
