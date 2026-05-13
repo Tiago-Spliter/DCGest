@@ -139,32 +139,32 @@ namespace DCGest
                         }
 
                         string sql = "UPDATE NotaMod SET Valor = @Valor, Data_Efetua = @Data WHERE Cod_NotaMod = @Id";
-using (MySqlCommand comando = new MySqlCommand(sql, conexao))
-{
-    // Gravar a Nota
-    if (nota.Valor == null)
-    {
-        comando.Parameters.AddWithValue("@Valor", DBNull.Value);
-    }
-    else
-    {
-        comando.Parameters.AddWithValue("@Valor", nota.Valor);
-    }
 
-    // Gravar a Data
-    if (nota.Data_Efetua == null)
-    {
-        comando.Parameters.AddWithValue("@Data", DBNull.Value);
-    }
-    else
-    {
-        comando.Parameters.AddWithValue("@Data", nota.Data_Efetua);
-    }
+                        using (MySqlCommand comando = new MySqlCommand(sql, conexao))
+                        {
 
-    comando.Parameters.AddWithValue("@Id", nota.Cod_NotaMod);
+                            if (nota.Valor == null)
+                            {
+                                comando.Parameters.AddWithValue("@Valor", DBNull.Value);
+                            }
+                            else
+                            {
+                                comando.Parameters.AddWithValue("@Valor", nota.Valor);
+                            }
 
-    comando.ExecuteNonQuery();
-}
+                            if (nota.Data_Efetua == null)
+                            {
+                                comando.Parameters.AddWithValue("@Data", DBNull.Value);
+                            }
+                            else
+                            {
+                                comando.Parameters.AddWithValue("@Data", nota.Data_Efetua);
+                            }
+
+                            comando.Parameters.AddWithValue("@Id", nota.Cod_NotaMod);
+
+                            comando.ExecuteNonQuery();
+                        }
                     }
                 }
 
