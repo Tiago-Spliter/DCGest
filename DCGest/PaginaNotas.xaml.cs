@@ -5,7 +5,7 @@ using System.Data;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using DCGest.Models;
+using DCGest.Classes;
 
 namespace DCGest
 {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DCGest.Models
+namespace DCGest.Classes
 {
     public class Orientador
     {

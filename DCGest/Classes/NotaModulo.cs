@@ -1,6 +1,6 @@
 using System;
 
-namespace DCGest.Models
+namespace DCGest.Classes
 {
     public class NotaModulo
     {
