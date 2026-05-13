@@ -1,0 +1,26 @@
+﻿<Page x:Class="DCGest.InformacaoInicial"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:DCGest"
+      mc:Ignorable="d" 
+      d:DesignHeight="745" d:DesignWidth="1550"
+      Title="Informacao" Background="#F3F5F9" FontFamily="Segoe UI">
+
+    <Grid>
+        <!-- Informação Inicial -->
+        <StackPanel Name="Conteudo" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,150">
+            <StackPanel Name="Titulo" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,18">
+                
+                <Canvas Name="Logo2" Background="#EFE6D8" Height="70" Width="70" Margin="10"/>
+                <TextBlock Text="DCGest" VerticalAlignment="Center" FontSize="44" FontWeight="Bold" Foreground="#1A2E52"/>
+            
+            </StackPanel>
+
+            <TextBlock Text="Gestor para Diretores de Curso" FontSize="24" FontWeight="SemiBold" Foreground="#243A6E" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+            <TextBlock Text="O DCGest é uma aplicação de gestão escolar que ajuda diretores de curso na organização e acompanhamento dos alunos. Concentra a informação importante num único local, tornando a gestão mais simples e eficiente." Width="460" FontSize="16" Foreground="#5A6478" TextAlignment="Center" TextWrapping="Wrap" LineHeight="22"/>
+        
+        </StackPanel>
+    </Grid>
+</Page>
