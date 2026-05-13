@@ -34,7 +34,7 @@ namespace DCGest
         string caminho = BD.CaminhoBD;
 
 
-        // Listas tipadas para as Combos
+        // Listas
         List<string> listaAnos = new List<string>();
         List<Curso> listaCursos = new List<Curso>();
         List<string> listaTurmas = new List<string>();
@@ -94,7 +94,8 @@ namespace DCGest
                         {
                             while (leitor.Read())
                             {
-                                listaCursos.Add(new Curso { 
+                                listaCursos.Add(new Curso 
+                                { 
                                     Cod_Curso = Convert.ToInt32(leitor["Cod_Curso"]), 
                                     Nome_Curso = leitor["Nome_Curso"].ToString() 
                                 });
@@ -136,7 +137,8 @@ namespace DCGest
                         {
                             while (leitor.Read())
                             {
-                                listaOrientadores.Add(new Orientador { 
+                                listaOrientadores.Add(new Orientador 
+                                { 
                                     Cod_Orientador = Convert.ToInt32(leitor["Cod_Orientador"]), 
                                     Nome_Orientador = leitor["Nome_Orientador"].ToString() 
                                 });
@@ -156,6 +158,7 @@ namespace DCGest
                 MessageBox.Show("Erro ao carregar combos: " + ex.Message);
             }
         }
+
         private void CarregarAlunos()
         {
             try
@@ -203,7 +206,6 @@ namespace DCGest
                                 a.Estado_Estagio = leitor["Estado_Estagio"].ToString();
                                 a.Ano_Letivo = leitor["Ano_Letivo"].ToString();
 
-                                // Verificação do Orientador com IF
                                 if (leitor["Cod_Ori"] == DBNull.Value)
                                 {
                                     a.Cod_Ori = null;

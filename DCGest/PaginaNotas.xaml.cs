@@ -100,25 +100,9 @@ namespace DCGest
                                 n.NomeModulo = leitor["Modulo"].ToString();
                                 n.NomeDisciplina = leitor["Disciplina"].ToString();
 
-                                // Usar IsDBNull para evitar comparação com DBNull.Value
-                                if (!leitor.IsDBNull(leitor.GetOrdinal("Valor")))
-                                {
-                                    n.Valor = Convert.ToInt32(leitor["Valor"]);
-                                }
-                                else
-                                {
-                                    n.Valor = null;
-                                }
-
-                                if (!leitor.IsDBNull(leitor.GetOrdinal("Data_Efetua")))
-                                {
-                                    n.Data_Efetua = Convert.ToDateTime(leitor["Data_Efetua"]);
-                                }
-                                else
-                                {
-                                    n.Data_Efetua = null;
-                                }
-
+                                // Forma simples e segura: se for vazio na BD, fica null
+                                n.Valor = leitor["Valor"] as int?;
+                                n.Data_Efetua = leitor["Data_Efetua"] as DateTime?;
 
                                 listaNotas.Add(n);
                             }
@@ -143,43 +127,28 @@ namespace DCGest
                 {
                     conexao.Open();
 
-                    using (MySqlTransaction transacao = conexao.BeginTransaction())
+                    foreach (NotaModulo nota in listaNotas)
                     {
-                        string sql = @"UPDATE NotaMod SET Valor = @Valor, Data_Efetua = @Data WHERE Cod_NotaMod = @Id";
-
-                        using (MySqlCommand comando = new MySqlCommand(sql, conexao, transacao))
+                        if (nota.Valor != null)
                         {
-                            // Adicionar os parâmetros uma única vez
-                            comando.Parameters.Add("@Valor", MySqlDbType.Int32);
-                            comando.Parameters.Add("@Data", MySqlDbType.DateTime);
-                            comando.Parameters.Add("@Id", MySqlDbType.Int32);
-
-                            DateTime dataAtual = DateTime.Now;
-
-                            foreach (NotaModulo nota in listaNotas)
-                            {
-                                // Se a nota tiver valor, atualizamos a data para agora.
-                                // Se for null, mantemos ou limpamos a data conforme a regra de negócio.
-                                // Aqui, vamos atualizar a data apenas se houver uma nota.
-                                if (nota.Valor != null)
-                                {
-                                    nota.Data_Efetua = dataAtual;
-                                }
-                                else
-                                {
-                                    nota.Data_Efetua = null;
-                                }
-
-                                // Atualizar os valores dos parâmetros para cada nota
-                                comando.Parameters["@Valor"].Value = nota.Valor.ParaDB();
-                                comando.Parameters["@Data"].Value = nota.Data_Efetua.ParaDB();
-                                comando.Parameters["@Id"].Value = nota.Cod_NotaMod;
-
-                                comando.ExecuteNonQuery();
-                            }
+                            nota.Data_Efetua = DateTime.Now;
+                        }
+                        else
+                        {
+                            nota.Data_Efetua = null;
                         }
 
-                        transacao.Commit();
+                        string sql = "UPDATE NotaMod SET Valor = @Valor, Data_Efetua = @Data WHERE Cod_NotaMod = @Id";
+
+                        using (MySqlCommand comando = new MySqlCommand(sql, conexao))
+                        {
+                            // Se o valor for null, usamos DBNull.Value (padrão do C#)
+                            comando.Parameters.AddWithValue("@Valor", nota.Valor == null ? DBNull.Value : (object)nota.Valor);
+                            comando.Parameters.AddWithValue("@Data", nota.Data_Efetua == null ? DBNull.Value : (object)nota.Data_Efetua);
+                            comando.Parameters.AddWithValue("@Id", nota.Cod_NotaMod);
+
+                            comando.ExecuteNonQuery();
+                        }
                     }
                 }
 

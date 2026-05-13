@@ -250,7 +250,7 @@ namespace DCGest
                     }
                     else // Orientador
                     {
-                    if (string.IsNullOrWhiteSpace(txtNomeOri.Text))
+                    if (txtNomeOri.Text != string.Empty)
                     {
                         MessageBox.Show("Preencha o nome do Orientador!");
                         return;
