@@ -1,9 +1,11 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using DCGest.Models;
 
 namespace DCGest
 {
@@ -28,11 +30,11 @@ namespace DCGest
             }
         }
 
-        string caminho = "Server=localhost;Database=pap;User=root;Password=rootroot";
+        string caminho = BD.CaminhoBD;
 
         int codAluno;
 
-        DataTable tabelaNotas = new DataTable();
+        List<NotaModulo> listaNotas = new List<NotaModulo>();
 
 
         private void CarregarNomeAluno()
@@ -74,19 +76,14 @@ namespace DCGest
         {
             try
             {
-                tabelaNotas.Clear();
-                tabelaNotas.Columns.Clear();
-                tabelaNotas.Columns.Add("Cod_NotaMod");
-                tabelaNotas.Columns.Add("Modulo");
-                tabelaNotas.Columns.Add("Disciplina");
-                tabelaNotas.Columns.Add("Valor");
-                tabelaNotas.Columns.Add("Data_Efetua");
+                listaNotas.Clear();
 
                 using (MySqlConnection conexao = new MySqlConnection(caminho))
                 {
                     conexao.Open();
 
-                    string sql = "SELECT n.Cod_NotaMod, m.Designacao AS Modulo, d.Designacao AS Disciplina, n.Valor, n.Data_Efetua FROM NotaMod n INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc WHERE n.Ano = @Ano AND n.Cod_Aluno = @Aluno";
+                    string sql = @"SELECT n.Cod_NotaMod, m.Designacao AS Modulo, d.Designacao AS Disciplina, n.Valor, n.Data_Efetua 
+                                   FROM NotaMod n INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc WHERE n.Ano = @Ano AND n.Cod_Aluno = @Aluno";
 
                     using (MySqlCommand comando = new MySqlCommand(sql, conexao))
                     {
@@ -97,19 +94,40 @@ namespace DCGest
                         {
                             while (leitor.Read())
                             {
-                                tabelaNotas.Rows.Add(
-                                    leitor["Cod_NotaMod"],
-                                    leitor["Modulo"],
-                                    leitor["Disciplina"],
-                                    leitor["Valor"] == DBNull.Value ? "" : leitor["Valor"],
-                                    leitor["Data_Efetua"] == DBNull.Value ? "" : leitor["Data_Efetua"]
-                                );
+                                NotaModulo n = new NotaModulo();
+                                
+                                n.Cod_NotaMod = Convert.ToInt32(leitor["Cod_NotaMod"]);
+                                n.NomeModulo = leitor["Modulo"].ToString();
+                                n.NomeDisciplina = leitor["Disciplina"].ToString();
+
+                                // Usar IsDBNull para evitar comparação com DBNull.Value
+                                if (!leitor.IsDBNull(leitor.GetOrdinal("Valor")))
+                                {
+                                    n.Valor = Convert.ToInt32(leitor["Valor"]);
+                                }
+                                else
+                                {
+                                    n.Valor = null;
+                                }
+
+                                if (!leitor.IsDBNull(leitor.GetOrdinal("Data_Efetua")))
+                                {
+                                    n.Data_Efetua = Convert.ToDateTime(leitor["Data_Efetua"]);
+                                }
+                                else
+                                {
+                                    n.Data_Efetua = null;
+                                }
+
+
+                                listaNotas.Add(n);
                             }
                         }
                     }
                 }
 
-                dg_alunos.ItemsSource = tabelaNotas.DefaultView;
+                dg_alunos.ItemsSource = null;
+                dg_alunos.ItemsSource = listaNotas;
             }
             catch (Exception ex)
             {
@@ -119,49 +137,59 @@ namespace DCGest
 
         private void Btn_Click_Editar(object sender, RoutedEventArgs e)
         {
-            using (MySqlConnection conexao = new MySqlConnection(caminho))
+            try
             {
-                conexao.Open();
-
-                foreach (DataRow linha in tabelaNotas.Rows)
+                using (MySqlConnection conexao = new MySqlConnection(caminho))
                 {
-                    if (linha["Cod_NotaMod"] != DBNull.Value)
+                    conexao.Open();
+
+                    using (MySqlTransaction transacao = conexao.BeginTransaction())
                     {
-                        string valorString = linha["Valor"].ToString();
+                        string sql = @"UPDATE NotaMod SET Valor = @Valor, Data_Efetua = @Data WHERE Cod_NotaMod = @Id";
 
-                        if (valorString != string.Empty)
+                        using (MySqlCommand comando = new MySqlCommand(sql, conexao, transacao))
                         {
-                            int valor = 0;
-                            bool atualizarData = false;
+                            // Adicionar os parâmetros uma única vez
+                            comando.Parameters.Add("@Valor", MySqlDbType.Int32);
+                            comando.Parameters.Add("@Data", MySqlDbType.DateTime);
+                            comando.Parameters.Add("@Id", MySqlDbType.Int32);
 
-                            try
-                            {
-                                valor = int.Parse(valorString);
-                                atualizarData = true;
-                            }
-                            catch
-                            {
-                                MessageBox.Show($"Valor inválido no módulo {linha["Modulo"]}. Será considerado vazio.");
-                                valor = 0;
-                                atualizarData = true;
-                            }
+                            DateTime dataAtual = DateTime.Now;
 
-                            string sql_Notas = @"UPDATE NotaMod SET Valor = @Valor, Data_Efetua = @Data WHERE Cod_NotaMod = @Id";
-
-                            using (MySqlCommand comando = new MySqlCommand(sql_Notas, conexao))
+                            foreach (NotaModulo nota in listaNotas)
                             {
-                                comando.Parameters.AddWithValue("@Valor", valorString == "" ? DBNull.Value : (object)valor);
-                                comando.Parameters.AddWithValue("@Data", atualizarData ? DateTime.Now : DBNull.Value);
-                                comando.Parameters.AddWithValue("@Id", linha["Cod_NotaMod"]);
+                                // Se a nota tiver valor, atualizamos a data para agora.
+                                // Se for null, mantemos ou limpamos a data conforme a regra de negócio.
+                                // Aqui, vamos atualizar a data apenas se houver uma nota.
+                                if (nota.Valor != null)
+                                {
+                                    nota.Data_Efetua = dataAtual;
+                                }
+                                else
+                                {
+                                    nota.Data_Efetua = null;
+                                }
+
+                                // Atualizar os valores dos parâmetros para cada nota
+                                comando.Parameters["@Valor"].Value = nota.Valor.ParaDB();
+                                comando.Parameters["@Data"].Value = nota.Data_Efetua.ParaDB();
+                                comando.Parameters["@Id"].Value = nota.Cod_NotaMod;
 
                                 comando.ExecuteNonQuery();
                             }
                         }
+
+                        transacao.Commit();
                     }
                 }
-            }
 
-            MessageBox.Show("Notas guardadas com sucesso!");
+                dg_alunos.Items.Refresh();
+                MessageBox.Show("Notas guardadas com sucesso!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao guardar notas: " + ex.Message);
+            }
         }
 
         private void Btn_Click_Voltar(object sender, RoutedEventArgs e)

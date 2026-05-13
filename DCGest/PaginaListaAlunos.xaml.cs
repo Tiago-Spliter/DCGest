@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using DCGest.Models;
 
 namespace DCGest
 {
@@ -30,15 +31,16 @@ namespace DCGest
             CarregarEntradas();
         }
 
-        string caminho = "Server=localhost;Database=pap;User=root;Password=rootroot";
+        string caminho = BD.CaminhoBD;
 
 
-        // Tabelas
-        DataTable tabela_Ano = new DataTable();
-        DataTable tabela_Curso = new DataTable();
-        DataTable tabela_Alunos = new DataTable();
-        DataTable tabela_Turma = new DataTable();
-        DataTable tabela_Orientador = new DataTable();
+        // Listas tipadas para as Combos
+        List<string> listaAnos = new List<string>();
+        List<Curso> listaCursos = new List<Curso>();
+        List<string> listaTurmas = new List<string>();
+        List<Orientador> listaOrientadores = new List<Orientador>();
+
+        List<Aluno> listaAlunos = new List<Aluno>();
 
         private void Btn_Click_Seleciona(object sender, RoutedEventArgs e)
         {
@@ -64,104 +66,89 @@ namespace DCGest
                 {
                     conexao.Open();
 
-                    
                     // Ano-Letivo
-
                     string sql_Ano = "SELECT DISTINCT Ano_Letivo FROM aluno ORDER BY Ano_Letivo";
-                    tabela_Ano.Clear();
+                    listaAnos.Clear();
+                    listaAnos.Add("Todos");
 
                     using (MySqlCommand comando = new MySqlCommand(sql_Ano, conexao))
                     {
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
-                            tabela_Ano.Load(leitor);
+                            while (leitor.Read()) listaAnos.Add(leitor["Ano_Letivo"].ToString());
                         }
                     }
-                    
 
-                    DataRow alinha_Ano = tabela_Ano.NewRow();
-                    alinha_Ano["Ano_Letivo"] = "Todos";
-                    tabela_Ano.Rows.InsertAt(alinha_Ano, 0);
-
-                    cmb_anoletivo.ItemsSource = tabela_Ano.DefaultView;
-                    cmb_anoletivo.DisplayMemberPath = "Ano_Letivo";
-                    cmb_anoletivo.SelectedValuePath = "Ano_Letivo";
+                    cmb_anoletivo.ItemsSource = null;
+                    cmb_anoletivo.ItemsSource = listaAnos;
                     cmb_anoletivo.SelectedIndex = 0;
 
-                    
                     // Curso
-
                     string sql_Curso = "SELECT Cod_Curso, Nome_Curso FROM cursos ORDER BY Nome_Curso";
-                    tabela_Curso.Clear();
+                    listaCursos.Clear();
+                    listaCursos.Add(new Curso { Cod_Curso = 0, Nome_Curso = "Todos" });
 
                     using (MySqlCommand comando = new MySqlCommand(sql_Curso, conexao))
                     {
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
-                            tabela_Curso.Load(leitor);
+                            while (leitor.Read())
+                            {
+                                listaCursos.Add(new Curso { 
+                                    Cod_Curso = Convert.ToInt32(leitor["Cod_Curso"]), 
+                                    Nome_Curso = leitor["Nome_Curso"].ToString() 
+                                });
+                            }
                         }
                     }
-                    
 
-                    DataRow alinha_Curso = tabela_Curso.NewRow();
-                    alinha_Curso["Cod_Curso"] = 0;
-                    alinha_Curso["Nome_Curso"] = "Todos";
-                    tabela_Curso.Rows.InsertAt(alinha_Curso, 0);
-
-                    cmb_curso.ItemsSource = tabela_Curso.DefaultView;
+                    cmb_curso.ItemsSource = null;
+                    cmb_curso.ItemsSource = listaCursos;
                     cmb_curso.DisplayMemberPath = "Nome_Curso";
                     cmb_curso.SelectedValuePath = "Cod_Curso";
                     cmb_curso.SelectedIndex = 0;
 
-
                     // Turma
-
                     string sql_Turma = "SELECT DISTINCT Turma FROM aluno ORDER BY Turma";
-                    tabela_Turma.Clear();
+                    listaTurmas.Clear();
+                    listaTurmas.Add("*");
 
                     using (MySqlCommand comando = new MySqlCommand(sql_Turma, conexao))
                     {
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
-                            tabela_Turma.Load(leitor);
+                            while (leitor.Read()) listaTurmas.Add(leitor["Turma"].ToString());
                         }
                     }
-                    
 
-                    DataRow alinha_Turma = tabela_Turma.NewRow();
-                    alinha_Turma["Turma"] = "*";
-                    tabela_Turma.Rows.InsertAt(alinha_Turma, 0);
-
-                    cmb_turma.ItemsSource = tabela_Turma.DefaultView;
-                    cmb_turma.DisplayMemberPath = "Turma";
-                    cmb_turma.SelectedValuePath = "Turma";
+                    cmb_turma.ItemsSource = null;
+                    cmb_turma.ItemsSource = listaTurmas;
                     cmb_turma.SelectedIndex = 0;
 
-
                     // Orientador
-                    
                     string sql_Orientador = "SELECT Cod_Orientador, Nome_Orientador FROM orientador ORDER BY Nome_Orientador";
-                    tabela_Orientador.Clear();
+                    listaOrientadores.Clear();
+                    listaOrientadores.Add(new Orientador { Cod_Orientador = 0, Nome_Orientador = "Todos" });
 
                     using (MySqlCommand comando = new MySqlCommand(sql_Orientador, conexao))
                     {
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
-                            tabela_Orientador.Load(leitor);
+                            while (leitor.Read())
+                            {
+                                listaOrientadores.Add(new Orientador { 
+                                    Cod_Orientador = Convert.ToInt32(leitor["Cod_Orientador"]), 
+                                    Nome_Orientador = leitor["Nome_Orientador"].ToString() 
+                                });
+                            }
                         }
                     }
 
-
-                    DataRow rowOrientador = tabela_Orientador.NewRow();
-                    rowOrientador["Cod_Orientador"] = 0;
-                    rowOrientador["Nome_Orientador"] = "Todos";
-                    tabela_Orientador.Rows.InsertAt(rowOrientador, 0);
-
-                    cmb_orientador.ItemsSource = tabela_Orientador.DefaultView;
+                    cmb_orientador.ItemsSource = null;
+                    cmb_orientador.ItemsSource = listaOrientadores;
                     cmb_orientador.DisplayMemberPath = "Nome_Orientador";
                     cmb_orientador.SelectedValuePath = "Cod_Orientador";
                     cmb_orientador.SelectedIndex = 0;
-
                 }
             }
             catch (Exception ex)
@@ -169,7 +156,6 @@ namespace DCGest
                 MessageBox.Show("Erro ao carregar combos: " + ex.Message);
             }
         }
-
         private void CarregarAlunos()
         {
             try
@@ -180,14 +166,10 @@ namespace DCGest
 
                     StringBuilder sql_Alunos = new StringBuilder("SELECT * FROM aluno WHERE 1=1");
 
-                    // Filtrar Ano Letivo
-
                     if (cmb_anoletivo.SelectedValue != null && cmb_anoletivo.SelectedValue.ToString() != "Todos")
                     {
                         sql_Alunos.Append(" AND Ano_Letivo = @ano");
                     }
-
-                    // Filtrar Curso
 
                     if (cmb_curso.SelectedValue != null && cmb_curso.SelectedValue.ToString() != "0")
                     {
@@ -206,14 +188,37 @@ namespace DCGest
                             comando.Parameters.AddWithValue("@curso", cmb_curso.SelectedValue);
                         }
 
-                        tabela_Alunos.Clear();
+                        listaAlunos.Clear();
 
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
-                            tabela_Alunos.Load(leitor);
+                            while (leitor.Read())
+                            {
+                                Aluno a = new Aluno();
+                                
+                                a.Cod_Aluno = Convert.ToInt32(leitor["Cod_Aluno"]);
+                                a.Nome_Aluno = leitor["Nome_Aluno"].ToString();
+                                a.Turma = leitor["Turma"].ToString();
+                                a.Cod_Curso = Convert.ToInt32(leitor["Cod_Curso"]);
+                                a.Estado_Estagio = leitor["Estado_Estagio"].ToString();
+                                a.Ano_Letivo = leitor["Ano_Letivo"].ToString();
+
+                                // Verificação do Orientador com IF
+                                if (leitor["Cod_Ori"] == DBNull.Value)
+                                {
+                                    a.Cod_Ori = null;
+                                }
+                                else
+                                {
+                                    a.Cod_Ori = Convert.ToInt32(leitor["Cod_Ori"]);
+                                }
+
+                                listaAlunos.Add(a);
+                            }
                         }
 
-                        dg_alunos.ItemsSource = tabela_Alunos.DefaultView;
+                        dg_alunos.ItemsSource = null;
+                        dg_alunos.ItemsSource = listaAlunos;
                     }
                 }
             }
@@ -233,8 +238,6 @@ namespace DCGest
 
                     StringBuilder Filtro = new StringBuilder("SELECT * FROM aluno WHERE 1=1");
 
-                    // Filtros
-
                     if (txt_codigo.Text != string.Empty)
                     {
                         Filtro.Append(" AND Cod_Aluno = @cod");
@@ -252,7 +255,7 @@ namespace DCGest
 
                     if (cmb_orientador.SelectedValue != null && cmb_orientador.SelectedValue.ToString() != "0")
                     {
-                        Filtro.Append(" AND Cod_Orientador = @orientador");
+                        Filtro.Append(" AND Cod_Ori = @orientador");
                     }
 
                     using (MySqlCommand comando = new MySqlCommand(Filtro.ToString(), conexao))
@@ -277,14 +280,36 @@ namespace DCGest
                             comando.Parameters.AddWithValue("@orientador", cmb_orientador.SelectedValue);
                         }
 
-                        tabela_Alunos.Clear();
+                        listaAlunos.Clear();
 
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
-                            tabela_Alunos.Load(leitor);
+                            while (leitor.Read())
+                            {
+                                Aluno a = new Aluno();
+                                
+                                a.Cod_Aluno = Convert.ToInt32(leitor["Cod_Aluno"]);
+                                a.Nome_Aluno = leitor["Nome_Aluno"].ToString();
+                                a.Turma = leitor["Turma"].ToString();
+                                a.Cod_Curso = Convert.ToInt32(leitor["Cod_Curso"]);
+                                a.Estado_Estagio = leitor["Estado_Estagio"].ToString();
+                                a.Ano_Letivo = leitor["Ano_Letivo"].ToString();
+
+                                if (leitor["Cod_Ori"] == DBNull.Value)
+                                {
+                                    a.Cod_Ori = null;
+                                }
+                                else
+                                {
+                                    a.Cod_Ori = Convert.ToInt32(leitor["Cod_Ori"]);
+                                }
+
+                                listaAlunos.Add(a);
+                            }
                         }
 
-                        dg_alunos.ItemsSource = tabela_Alunos.DefaultView;
+                        dg_alunos.ItemsSource = null;
+                        dg_alunos.ItemsSource = listaAlunos;
                     }
                 }
             }

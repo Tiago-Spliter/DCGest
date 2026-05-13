@@ -31,16 +31,16 @@
 
                 <DataGrid.Columns>
 
-                    <DataGridTextColumn Header="Módulo" Binding="{Binding Modulo}" IsReadOnly="True" Width="*"/>
+                    <DataGridTextColumn Header="Módulo" Binding="{Binding NomeModulo}" IsReadOnly="True" Width="*"/>
 
-                    <DataGridTextColumn Header="Disciplina" Binding="{Binding Disciplina}" IsReadOnly="True" Width="*"/>
+                    <DataGridTextColumn Header="Disciplina" Binding="{Binding NomeDisciplina}" IsReadOnly="True" Width="*"/>
 
                     <DataGridTextColumn Header="Nota"
                             Binding="{Binding Valor, UpdateSourceTrigger=PropertyChanged}"
                             Width="100"/>
 
                     <DataGridTextColumn Header="Data"
-                            Binding="{Binding Data_Efetua, StringFormat=d}"
+                            Binding="{Binding Data_Efetua, StringFormat=dd/MM/yyyy}"
                             IsReadOnly="True"
                             Width="150"/>
 
