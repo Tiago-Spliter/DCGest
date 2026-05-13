@@ -100,9 +100,9 @@ namespace DCGest
                                 n.NomeModulo = leitor["Modulo"].ToString();
                                 n.NomeDisciplina = leitor["Disciplina"].ToString();
 
-                                // Forma simples e segura: se for vazio na BD, fica null
-                                n.Valor = leitor["Valor"] as int?;
-                                n.Data_Efetua = leitor["Data_Efetua"] as DateTime?;
+
+                                n.Valor = (int?)leitor["Valor"];
+                                n.Data_Efetua = (DateTime?)leitor["Data_Efetua"];
 
                                 listaNotas.Add(n);
                             }
@@ -139,16 +139,32 @@ namespace DCGest
                         }
 
                         string sql = "UPDATE NotaMod SET Valor = @Valor, Data_Efetua = @Data WHERE Cod_NotaMod = @Id";
+using (MySqlCommand comando = new MySqlCommand(sql, conexao))
+{
+    // Gravar a Nota
+    if (nota.Valor == null)
+    {
+        comando.Parameters.AddWithValue("@Valor", DBNull.Value);
+    }
+    else
+    {
+        comando.Parameters.AddWithValue("@Valor", nota.Valor);
+    }
 
-                        using (MySqlCommand comando = new MySqlCommand(sql, conexao))
-                        {
-                            // Se o valor for null, usamos DBNull.Value (padrão do C#)
-                            comando.Parameters.AddWithValue("@Valor", nota.Valor == null ? DBNull.Value : (object)nota.Valor);
-                            comando.Parameters.AddWithValue("@Data", nota.Data_Efetua == null ? DBNull.Value : (object)nota.Data_Efetua);
-                            comando.Parameters.AddWithValue("@Id", nota.Cod_NotaMod);
+    // Gravar a Data
+    if (nota.Data_Efetua == null)
+    {
+        comando.Parameters.AddWithValue("@Data", DBNull.Value);
+    }
+    else
+    {
+        comando.Parameters.AddWithValue("@Data", nota.Data_Efetua);
+    }
 
-                            comando.ExecuteNonQuery();
-                        }
+    comando.Parameters.AddWithValue("@Id", nota.Cod_NotaMod);
+
+    comando.ExecuteNonQuery();
+}
                     }
                 }
 
