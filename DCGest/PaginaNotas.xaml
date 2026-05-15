@@ -1,57 +1,152 @@
-﻿<Window x:Class="DCGest.PaginaNotas"
+<Window x:Class="DCGest.PaginaNotas"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DCGest"
-        
         mc:Ignorable="d"
-        Title="Notas" Height="875" Width="1550" WindowState="Maximized">
+        Title="Notas" Height="875" Width="1550" WindowState="Maximized" Background="#F3F5F9" FontFamily="Segoe UI">
+    
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="100"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <StackPanel Height="105" VerticalAlignment="Top" Background="#293472" Orientation="Horizontal">
-            <Canvas Name="Logo" Background="#EFE6D8" Height="75" Width="75" Margin="30,10,15,10"/>
-            <Line Stroke="#1B2E57" StrokeThickness="2" Y2="60" Margin="10,20"/>
-            <TextBlock Text="Aluno : " FontSize="35" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20,0,0,0"/>
-            <TextBlock Name="txtNomeAluno" Width="1000" FontSize="28" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,5,0,0"/>
-        </StackPanel>
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#293472">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Width="60" Height="60" Background="#EFE6D8" CornerRadius="30" Margin="30,0,20,0">
+                    <TextBlock Text="🎓" FontSize="35" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Notas do Aluno:" FontSize="24" FontWeight="SemiBold" Foreground="#D0D6E2" VerticalAlignment="Center"/>
+                <TextBlock Name="txtNomeAluno" Text="Nome do Aluno" FontSize="24" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" Margin="15,0,0,0"/>
+            </StackPanel>
+        </Border>
 
-        <StackPanel Margin="0,140,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" Width="1400">
+        <Grid Grid.Row="1" Margin="40">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="400"/>
+            </Grid.ColumnDefinitions>
+            
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <TextBlock Text="Detalhes do Aluno" FontSize="38" FontWeight="Bold" Foreground="#1E2A44" Margin="0,0,0,0" HorizontalAlignment="Center"/>
+            <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Registo de Avaliações" FontSize="32" FontWeight="Bold" Foreground="#1A2E52" Margin="0,0,0,30"/>
 
-            <!-- Escolhas -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,0">
-                <Button Name="btn_ano1" Content="1º Ano" Width="100" Height="40" FontSize="18" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" Click="Btn_Click_Ano1"/>
-                <Button Name="btn_ano2" Content="2º Ano" Width="100" Height="40" FontSize="18" FontWeight="SemiBold" Foreground="#293472" Background="#EFE6D8" BorderThickness="0" Margin="5,0,0,0" Click="Btn_Click_Ano2"/>
-                <Button Name="btn_ano3" Content="3º Ano" Width="100" Height="40" FontSize="18" FontWeight="SemiBold" Foreground="#293472" Background="#EFE6D8" BorderThickness="0" Margin="5,0,0,0" Click="Btn_Click_Ano3"/>
+            <!-- Filtro de Anos -->
+            <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,20">
+                <Button Name="btn_ano1" Content="1º Ano" Width="120" Height="40" FontSize="16" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" Cursor="Hand" Click="Btn_Click_Ano1"/>
+                <Button Name="btn_ano2" Content="2º Ano" Width="120" Height="40" FontSize="16" FontWeight="SemiBold" Foreground="#293472" Background="White" BorderThickness="1" BorderBrush="#293472" Margin="10,0,0,0" Cursor="Hand" Click="Btn_Click_Ano2"/>
+                <Button Name="btn_ano3" Content="3º Ano" Width="120" Height="40" FontSize="16" FontWeight="SemiBold" Foreground="#293472" Background="White" BorderThickness="1" BorderBrush="#293472" Margin="10,0,0,0" Cursor="Hand" Click="Btn_Click_Ano3"/>
             </StackPanel>
 
-            <DataGrid Name="dg_alunos" MaxHeight="500" VerticalScrollBarVisibility="Auto" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="False" Margin="0,10,0,0" RowBackground="White" AlternatingRowBackground="#F2F2F2" GridLinesVisibility="None" BorderBrush="#293472" BorderThickness="2">
+            <!-- DataGrid Notas -->
+            <DataGrid Name="dg_alunos" Grid.Row="2" Grid.Column="0" AutoGenerateColumns="False" CanUserAddRows="False" RowHeight="45" FontSize="15" Background="White" BorderBrush="#E0E6ED" BorderThickness="1" HorizontalGridLinesBrush="#F3F5F9" VerticalGridLinesBrush="#F3F5F9" HorizontalAlignment="Stretch">
+                
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="Padding" Value="10,5"/>
+                        <Setter Property="Background" Value="#F8FAFC"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="DataGridCell">
+                                    <Grid Background="{TemplateBinding Background}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </DataGrid.CellStyle>
 
                 <DataGrid.Columns>
-
-                    <DataGridTextColumn Header="Módulo" Binding="{Binding NomeModulo}" IsReadOnly="True" Width="*"/>
-
-                    <DataGridTextColumn Header="Disciplina" Binding="{Binding NomeDisciplina}" IsReadOnly="True" Width="*"/>
-
-                    <DataGridTextColumn Header="Nota"
-                            Binding="{Binding Valor, UpdateSourceTrigger=PropertyChanged}"
-                            Width="100"/>
-
-                    <DataGridTextColumn Header="Data"
-                            Binding="{Binding Data_Efetua, StringFormat=dd/MM/yyyy}"
-                            IsReadOnly="True"
-                            Width="150"/>
-
+                    <DataGridTextColumn Header="Disciplina" Binding="{Binding NomeDisciplina}" IsReadOnly="True" Width="300"/>
+                    <DataGridTextColumn Header="Módulo" Binding="{Binding NomeModulo}" IsReadOnly="True" Width="150"/>
+                    <DataGridTextColumn Header="Nota" Binding="{Binding Valor, UpdateSourceTrigger=PropertyChanged}" Width="70"/>
+                    <DataGridTextColumn Header="Data de Lançamento" Binding="{Binding Data_Efetua, StringFormat=dd/MM/yyyy}" IsReadOnly="True" Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>
 
-            <StackPanel Orientation="Horizontal" Height="50" HorizontalAlignment="Center" Margin="0,30,0,0">
-                <Button Content="Editar" Width="150" FontSize="20" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" Padding="12,6" Margin="20,0" Click="Btn_Click_Editar"/>
-                <Button Content="Voltar" Width="150" FontSize="20" FontWeight="SemiBold" Foreground="#293472" Background="White" BorderBrush="#293472" BorderThickness="1" Padding="12,6" Margin="20,0" Click="Btn_Click_Voltar"/>
-            </StackPanel>
+            <!-- Painel Lateral Compacto -->
+            <Border Grid.Row="2" Grid.Column="1" Background="White" CornerRadius="15" Padding="25" BorderBrush="#E0E6ED" BorderThickness="1" Margin="30,0,0,0" VerticalAlignment="Top">
+                <StackPanel>
+                    <TextBlock Text="Resultados Finais" FontSize="22" FontWeight="Bold" Foreground="#293472" Margin="0,0,0,25"/>
+                    
+                    <!-- Médias em Grid para caber tudo -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,15">
+                            <TextBlock Text="Geral" FontSize="13" Foreground="#5A6478" Margin="0,0,0,5"/>
+                            <TextBox IsReadOnly="True" Text="---" Height="32" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="Bold" Background="#F8FAFC"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,15">
+                            <TextBlock Text="Científica" FontSize="13" Foreground="#5A6478" Margin="0,0,0,5"/>
+                            <TextBox IsReadOnly="True" Text="---" Height="32" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="Bold" Background="#F8FAFC"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="Técnica" FontSize="13" Foreground="#5A6478" Margin="0,0,0,5"/>
+                            <TextBox IsReadOnly="True" Text="---" Height="32" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="Bold" Background="#F8FAFC"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Separator Height="1" Background="#F0F4F8" Margin="0,25"/>
+
+                    <!-- FCT e PAP -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="Nota FCT" FontSize="13" Foreground="#5A6478" Margin="0,0,0,5"/>
+                            <TextBox Text="0" Height="32" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                            <TextBlock Text="Nota PAP" FontSize="13" Foreground="#5A6478" Margin="0,0,0,5"/>
+                            <TextBox Text="0" Height="32" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Média Final Destacada -->
+                    <StackPanel Margin="0,30,0,0">
+                        <TextBlock Text="MÉDIA FINAL" Foreground="#1A2E52" FontWeight="Black" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <Border Background="#293472" CornerRadius="10" Padding="15">
+                            <TextBlock Text="---" Foreground="White" FontSize="32" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Botões de Ação -->
+            <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,30,0,0">
+                <Button Content="Guardar Alterações" Width="220" Height="45" FontSize="16" FontWeight="Bold" Foreground="White" Background="#293472" BorderThickness="0" Cursor="Hand" Click="Btn_Click_Editar" Margin="0,0,15,0"/>
+                <Button Content="Fechar Janela" Width="150" Height="45" FontSize="16" FontWeight="SemiBold" Foreground="#5A6478" Background="#F3F5F9" BorderThickness="0" Cursor="Hand" Click="Btn_Click_Voltar"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

@@ -1,4 +1,4 @@
-﻿<Window x:Class="DCGest.MainWindow" 
+<Window x:Class="DCGest.MainWindow" 
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
@@ -8,18 +8,45 @@
         Title="Inicio" Height="875" Width="1550" WindowState="Maximized" Background="#F3F5F9" FontFamily="Segoe UI">
     
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="260"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- Menu -->
-        <StackPanel Height="105" VerticalAlignment="Top" Background="#293472" Orientation="Horizontal">
-            
-            <Canvas Name="Logo" Background="#EFE6D8" Height="75" Width="75" Margin="30,10,15,10"/>
-            <Line Stroke="#1B2E57" StrokeThickness="2" Y2="60" Margin="10,20"/>
-            <Button Name="btN_Inicial" Content="Página inicial" Height="90" Width="170" FontSize="18" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" Padding="14,6" Cursor="Hand" VerticalAlignment="Center" Click="Btn_Click_PaginaInicial"/>
-            <Button Name="btn_Lista" Content="Lista de alunos" Height="90" Width="170" FontSize="18" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" Padding="14,6" Cursor="Hand" VerticalAlignment="Center" Click="Btn_Click_PaginaListaAlunos"/>
-            <Button Name="btn_Adiciona" Content="Novo registo" Height="90" Width="170" FontSize="18" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" Padding="14,6" Cursor="Hand" VerticalAlignment="Center" Click="Btn_Click_PaginaAdiciona"/>
-            
-        </StackPanel>
+        <!-- Menu Lateral -->
+        <Border Grid.Column="0" Background="#293472">
+            <StackPanel>
+                <!-- Logo -->
+                <StackPanel Orientation="Horizontal" Margin="30,40,0,50">
+                    <Border Width="45" Height="45" Background="#EFE6D8" CornerRadius="10">
+                        <TextBlock Text="DC" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" Foreground="#293472" FontSize="20"/>
+                    </Border>
+                    <TextBlock Text="DCGest" VerticalAlignment="Center" Margin="15,0,0,0" FontSize="26" FontWeight="Bold" Foreground="White"/>
+                </StackPanel>
 
-        <Frame Name="frm" Height="745" Width="1550" NavigationUIVisibility="Hidden" Margin="0,105,0,0"/>
+                <!-- Navegação -->
+                <Button Name="btN_Inicial" Content="Página inicial" Height="60" FontSize="17" FontWeight="SemiBold" Foreground="White" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left" Padding="30,0" Cursor="Hand" Click="Btn_Click_PaginaInicial"/>
+                <Button Name="btn_Lista" Content="Lista de alunos" Height="60" FontSize="17" FontWeight="SemiBold" Foreground="#D0D6E2" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left" Padding="30,0" Cursor="Hand" Click="Btn_Click_PaginaListaAlunos"/>
+                <Button Name="btn_Adiciona" Content="Novo registo" Height="60" FontSize="17" FontWeight="SemiBold" Foreground="#D0D6E2" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left" Padding="30,0" Cursor="Hand" Click="Btn_Click_PaginaAdiciona"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Área Principal -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="80"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Barra Superior -->
+            <Border Grid.Row="0" Background="White" BorderBrush="#E0E6ED" BorderThickness="0,0,0,1">
+                <Grid Margin="30,0">
+                    <TextBlock Text="Bem-vindo ao Sistema de Gestão" VerticalAlignment="Center" FontSize="18" Foreground="#5A6478" FontWeight="Medium"/>
+                </Grid>
+            </Border>
+
+            <!-- Frame (Ajustado para Esticar) -->
+            <Frame Name="frm" Grid.Row="1" NavigationUIVisibility="Hidden" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        </Grid>
     </Grid>
 </Window>

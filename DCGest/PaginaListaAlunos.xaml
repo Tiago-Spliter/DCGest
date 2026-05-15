@@ -1,93 +1,112 @@
-﻿<Page x:Class="DCGest.PaginaListaAlunos"
+<Page x:Class="DCGest.PaginaListaAlunos"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:DCGest"
       mc:Ignorable="d" 
-      d:DesignHeight="745" d:DesignWidth="1550"
+      d:DesignHeight="745" d:DesignWidth="1290"
       Title="Lista de Alunos" Background="#F3F5F9" FontFamily="Segoe UI">
 
     <Grid>
+        <!-- CONTEÚDO BASE -->
+        <Grid Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-        <!-- ================= CONTEÚDO BASE ================= -->
-        <Grid>
-            <Button Name="Btn_AbrirOverlay" Content="Outro Curso 🔍" Width="140" Height="36" FontSize="14" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,20,40,0" Click="Btn_Click_AbrirSeleciona"/>
-            
-            <Border HorizontalAlignment="Left" Width="240" Background="#F3F3F3" BorderBrush="#D0D0D0" BorderThickness="0,0,1,0" Padding="10">
-
+            <!-- Painel de Filtros -->
+            <Border Grid.Column="0" Background="White" CornerRadius="15" Padding="20" BorderBrush="#E0E6ED" BorderThickness="1" Margin="0,0,20,0">
                 <StackPanel>
+                    <TextBlock Text="Filtrar alunos" FontSize="20" FontWeight="Bold" Foreground="#293472" Margin="0,0,0,20"/>
 
-                    <TextBlock Text="Filtrar alunos" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                    <TextBlock Text="Código do Aluno" Foreground="#5A6478" Margin="0,0,0,5"/>
+                    <TextBox Name="txt_codigo" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,15"/>
 
-                    <TextBlock Text="Código do Aluno"/>
-                    <TextBox Name="txt_codigo" Height="28" VerticalContentAlignment="Center" Margin="0,4,0,12"/>
+                    <TextBlock Text="Nome" Foreground="#5A6478" Margin="0,0,0,5"/>
+                    <TextBox Name="txt_nome" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,15"/>
 
-                    <TextBlock Text="Nome"/>
-                    <TextBox Name="txt_nome" Height="28" VerticalContentAlignment="Center" Margin="0,4,0,12"/>
+                    <TextBlock Text="Turma" Foreground="#5A6478" Margin="0,0,0,5"/>
+                    <ComboBox Name="cmb_turma" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,15"/>
 
-                    <TextBlock Text="Turma"/>
-                    <ComboBox Name="cmb_turma" Height="28" VerticalContentAlignment="Center" Margin="0,4,0,12"/>
+                    <TextBlock Text="Orientador" Foreground="#5A6478" Margin="0,0,0,5"/>
+                    <ComboBox Name="cmb_orientador" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,20"/>
 
-                    <TextBlock Text="Orientador"/>
-                    <ComboBox Name="cmb_orientador" Height="28" VerticalContentAlignment="Center" Margin="0,4,0,12"/>
-
-                    <Button Content="Aplicar filtros" Height="32" Margin="0,10,0,0" Click="Btn_Click_Filtrar"/>
-                    <Button Content="Limpar" Height="32" Margin="0,6,0,0" Background="#E0E0E0" Click="Btn_Click_LimparFiltro"/>
-
+                    <Button Content="Aplicar Filtros" Height="38" Background="#293472" Foreground="White" FontWeight="SemiBold" Cursor="Hand" Click="Btn_Click_Filtrar"/>
+                    <Button Content="Limpar" Height="38" Margin="0,8,0,0" Background="#F3F5F9" Cursor="Hand" Click="Btn_Click_LimparFiltro"/>
                 </StackPanel>
             </Border>
 
-            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Width="1100" Margin="0,20,140,0">
+            <!-- Grelha Central -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <TextBlock Text="Lista de Alunos" FontSize="38" FontWeight="Bold" Foreground="#1E2A44" Margin="0,0,0,30" HorizontalAlignment="Center"/>
-                
-                <DataGrid Name="dg_alunos" IsReadOnly="True" Height="520" FontSize="16" BorderBrush="#D0D6E2" BorderThickness="1" Background="White" AutoGenerateColumns="False">
+                <!-- Top Bar da Grelha corrigida -->
+                <Grid Grid.Row="0" Margin="0,0,0,20">
+                    <TextBlock Text="Listagem Escolar" FontSize="28" FontWeight="Bold" Foreground="#1A2E52" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                    <Button Name="Btn_AbrirOverlay" Content="Mudar de Curso 🔍" Width="160" Height="36" FontSize="13" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" HorizontalAlignment="Right" Cursor="Hand" Click="Btn_Click_AbrirSeleciona"/>
+                </Grid>
+
+                <DataGrid Name="dg_alunos" Grid.Row="1" IsReadOnly="True" FontSize="15" BorderBrush="#E0E6ED" BorderThickness="1" Background="White" AutoGenerateColumns="False" HorizontalGridLinesBrush="#F3F5F9" VerticalGridLinesBrush="#F3F5F9" RowHeight="40">
+                    
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="10,5"/>
+                            <Setter Property="Background" Value="#F8FAFC"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGridCell">
+                                        <Grid Background="{TemplateBinding Background}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGrid.CellStyle>
+
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Código" Binding="{Binding Cod_Aluno}" Width="80"/>
+                        <DataGridTextColumn Header="Cod" Binding="{Binding Cod_Aluno}" Width="60"/>
                         <DataGridTextColumn Header="Nome" Binding="{Binding Nome_Aluno}" Width="*"/>
-                        <DataGridTextColumn Header="Turma" Binding="{Binding Turma}" Width="100"/>
-                        <DataGridTextColumn Header="Curso" Binding="{Binding Nome_Curso}" Width="250"/>
-                        <DataGridTextColumn Header="Ano Letivo" Binding="{Binding Ano_Letivo}" Width="120"/>
-                        <DataGridTextColumn Header="Estágio" Binding="{Binding Estado_Estagio}" Width="150"/>
-                        <DataGridTextColumn Header="Orientador" Binding="{Binding Nome_Orientador}" Width="200"/>
+                        <DataGridTextColumn Header="Turma" Binding="{Binding Turma}" Width="80"/>
+                        <DataGridTextColumn Header="Curso" Binding="{Binding Nome_Curso}" Width="200"/>
+                        <DataGridTextColumn Header="Ano" Binding="{Binding Ano_Letivo}" Width="100"/>
+                        <DataGridTextColumn Header="Estágio" Binding="{Binding Estado_Estagio}" Width="120"/>
+                        <DataGridTextColumn Header="Orientador" Binding="{Binding Nome_Orientador}" Width="180"/>
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <StackPanel HorizontalAlignment="Center" Width="400" VerticalAlignment="Center">
-
-                    <Button Content="Selecionar Aluno" Width="250" FontSize="16" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" Padding="12,6" Margin="0,10,0,0" HorizontalAlignment="Center" Click="Btn_Click_Seleciona"/>
-
-                </StackPanel>
-            </StackPanel>
-
+                <Button Content="Ver Notas do Aluno Selecionado" Grid.Row="2" Height="45" Width="300" FontSize="16" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" Margin="0,20,0,0" HorizontalAlignment="Center" Cursor="Hand" Click="Btn_Click_Seleciona"/>
+            </Grid>
         </Grid>
 
-        <!-- ================= OVERLAY ================= -->
-        <Border Name="Overlay" Background="#99000090" Visibility="Visible">
+        <!-- OVERLAY -->
+        <Border Name="Overlay" Background="#99000000" Visibility="Visible">
+            <Border Background="White" Width="500" Height="450" CornerRadius="20" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="40">
+                <StackPanel>
+                    <TextBlock Text="Escolha o Curso que deseja" FontSize="28" FontWeight="Bold" Foreground="#1A2E52" Margin="0,0,0,30"/>
+                    
+                    <TextBlock Text="Ano Letivo" Foreground="#5A6478" Margin="0,0,0,5"/>
+                    <ComboBox Name="cmb_anoletivo" Height="35" FontSize="15" VerticalContentAlignment="Center" Margin="0,0,0,20"/>
 
-            <Grid Width="800" Height="500" Background="White" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="Curso" Foreground="#5A6478" Margin="0,0,0,5"/>
+                    <ComboBox Name="cmb_curso" Height="35" FontSize="15" VerticalContentAlignment="Center" Margin="0,0,0,40"/>
 
-                <StackPanel Margin="40">
-
-                    <TextBlock Text="Cursos disponíveis" FontSize="32" FontWeight="Bold" Foreground="#1E2A44" Margin="0,0,0,20"/>
-                    <TextBlock Text="Escolha o Curso / Ano letivo desejados: " FontSize="18" Margin="0,0,0,20"/>
-
-                    <!-- Ano Letivo -->
-                    <TextBlock Text="Ano Letivo" Width="250" FontSize="20" HorizontalAlignment="Left" Margin="0,20,0,0"/>
-                    <ComboBox Name="cmb_anoletivo" Height="35" Width="250" FontSize="15" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,4,0,22"/>
-
-
-                    <!-- Curso -->
-                    <TextBlock Text="Curso" Width="250" FontSize="20" HorizontalAlignment="Left"/>
-                    <ComboBox Name="cmb_curso" Height="35" Width="250" FontSize="15" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,4,0,12"/>
-
-                    <Button Content="Continuar" Height="40" Width="300" HorizontalAlignment="Center" Margin="0,50,0,0" Click="Btn_Click_Continuar"/>
-
+                    <Button Content="Carregar Dados" Height="45" FontSize="16" FontWeight="Bold" Foreground="White" Background="#293472" BorderThickness="0" Cursor="Hand" Click="Btn_Click_Continuar"/>
                 </StackPanel>
-
-            </Grid>
+            </Border>
         </Border>
-
     </Grid>
 </Page>
