@@ -42,7 +42,17 @@
 
                 <TextBlock Text="Lista de Alunos" FontSize="38" FontWeight="Bold" Foreground="#1E2A44" Margin="0,0,0,30" HorizontalAlignment="Center"/>
                 
-                <DataGrid Name="dg_alunos" IsReadOnly="True" Height="520" FontSize="16" BorderBrush="#D0D6E2" BorderThickness="1" Background="White"/>
+                <DataGrid Name="dg_alunos" IsReadOnly="True" Height="520" FontSize="16" BorderBrush="#D0D6E2" BorderThickness="1" Background="White" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Código" Binding="{Binding Cod_Aluno}" Width="80"/>
+                        <DataGridTextColumn Header="Nome" Binding="{Binding Nome_Aluno}" Width="*"/>
+                        <DataGridTextColumn Header="Turma" Binding="{Binding Turma}" Width="100"/>
+                        <DataGridTextColumn Header="Curso" Binding="{Binding Nome_Curso}" Width="250"/>
+                        <DataGridTextColumn Header="Ano Letivo" Binding="{Binding Ano_Letivo}" Width="120"/>
+                        <DataGridTextColumn Header="Estágio" Binding="{Binding Estado_Estagio}" Width="150"/>
+                        <DataGridTextColumn Header="Orientador" Binding="{Binding Nome_Orientador}" Width="200"/>
+                    </DataGrid.Columns>
+                </DataGrid>
 
                 <StackPanel HorizontalAlignment="Center" Width="400" VerticalAlignment="Center">
 

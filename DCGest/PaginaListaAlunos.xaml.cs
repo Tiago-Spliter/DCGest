@@ -1,4 +1,4 @@
-﻿using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -86,7 +86,7 @@ namespace DCGest
                     // Curso
                     string sql_Curso = "SELECT Cod_Curso, Nome_Curso FROM cursos ORDER BY Nome_Curso";
                     listaCursos.Clear();
-                    listaCursos.Add(new Curso { Cod_Curso = 0, Nome_Curso = "Todos" });
+                    listaCursos.Add(new Curso(0, "Todos"));
 
                     using (MySqlCommand comando = new MySqlCommand(sql_Curso, conexao))
                     {
@@ -94,11 +94,10 @@ namespace DCGest
                         {
                             while (leitor.Read())
                             {
-                                listaCursos.Add(new Curso 
-                                { 
-                                    Cod_Curso = Convert.ToInt32(leitor["Cod_Curso"]), 
-                                    Nome_Curso = leitor["Nome_Curso"].ToString() 
-                                });
+                                listaCursos.Add(new Curso(
+                                    Convert.ToInt32(leitor["Cod_Curso"]), 
+                                    leitor["Nome_Curso"].ToString() 
+                                ));
                             }
                         }
                     }
@@ -129,7 +128,7 @@ namespace DCGest
                     // Orientador
                     string sql_Orientador = "SELECT Cod_Orientador, Nome_Orientador FROM orientador ORDER BY Nome_Orientador";
                     listaOrientadores.Clear();
-                    listaOrientadores.Add(new Orientador { Cod_Orientador = 0, Nome_Orientador = "Todos" });
+                    listaOrientadores.Add(new Orientador(0, "Todos"));
 
                     using (MySqlCommand comando = new MySqlCommand(sql_Orientador, conexao))
                     {
@@ -137,11 +136,10 @@ namespace DCGest
                         {
                             while (leitor.Read())
                             {
-                                listaOrientadores.Add(new Orientador 
-                                { 
-                                    Cod_Orientador = Convert.ToInt32(leitor["Cod_Orientador"]), 
-                                    Nome_Orientador = leitor["Nome_Orientador"].ToString() 
-                                });
+                                listaOrientadores.Add(new Orientador(
+                                    Convert.ToInt32(leitor["Cod_Orientador"]), 
+                                    leitor["Nome_Orientador"].ToString() 
+                                ));
                             }
                         }
                     }
@@ -167,16 +165,21 @@ namespace DCGest
                 {
                     conexao.Open();
 
-                    StringBuilder sql_Alunos = new StringBuilder("SELECT * FROM aluno WHERE 1=1");
+                    StringBuilder sql_Alunos = new StringBuilder(@"
+                        SELECT a.*, c.Nome_Curso, o.Nome_Orientador 
+                        FROM aluno a
+                        LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso
+                        LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador
+                    ");
 
                     if (cmb_anoletivo.SelectedValue != null && cmb_anoletivo.SelectedValue.ToString() != "Todos")
                     {
-                        sql_Alunos.Append(" AND Ano_Letivo = @ano");
+                        sql_Alunos.Append(" AND a.Ano_Letivo = @ano");
                     }
 
                     if (cmb_curso.SelectedValue != null && cmb_curso.SelectedValue.ToString() != "0")
                     {
-                        sql_Alunos.Append(" AND Cod_Curso = @curso");
+                        sql_Alunos.Append(" AND a.Cod_Curso = @curso");
                     }
 
                     using (MySqlCommand comando = new MySqlCommand(sql_Alunos.ToString(), conexao))
@@ -197,25 +200,19 @@ namespace DCGest
                         {
                             while (leitor.Read())
                             {
-                                Aluno a = new Aluno();
-                                
-                                a.Cod_Aluno = Convert.ToInt32(leitor["Cod_Aluno"]);
-                                a.Nome_Aluno = leitor["Nome_Aluno"].ToString();
-                                a.Turma = leitor["Turma"].ToString();
-                                a.Cod_Curso = Convert.ToInt32(leitor["Cod_Curso"]);
-                                a.Estado_Estagio = leitor["Estado_Estagio"].ToString();
-                                a.Ano_Letivo = leitor["Ano_Letivo"].ToString();
+                                int? codOri = leitor["Cod_Ori"] == DBNull.Value ? null : (int?)Convert.ToInt32(leitor["Cod_Ori"]);
 
-                                if (leitor["Cod_Ori"] == DBNull.Value)
-                                {
-                                    a.Cod_Ori = null;
-                                }
-                                else
-                                {
-                                    a.Cod_Ori = Convert.ToInt32(leitor["Cod_Ori"]);
-                                }
-
-                                listaAlunos.Add(a);
+                                listaAlunos.Add(new Aluno(
+                                    Convert.ToInt32(leitor["Cod_Aluno"]),
+                                    leitor["Nome_Aluno"].ToString(),
+                                    leitor["Turma"].ToString(),
+                                    Convert.ToInt32(leitor["Cod_Curso"]),
+                                    leitor["Estado_Estagio"].ToString(),
+                                    codOri,
+                                    leitor["Ano_Letivo"].ToString(),
+                                    leitor["Nome_Curso"].ToString() ,
+                                    leitor["Nome_Orientador"].ToString()
+                                ));
                             }
                         }
 
@@ -238,26 +235,31 @@ namespace DCGest
                 {
                     conexao.Open();
 
-                    StringBuilder Filtro = new StringBuilder("SELECT * FROM aluno WHERE 1=1");
+                    StringBuilder Filtro = new StringBuilder(@"
+                        SELECT a.*, c.Nome_Curso, o.Nome_Orientador 
+                        FROM aluno a
+                        LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso
+                        LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador
+                        WHERE 1=1");
 
                     if (txt_codigo.Text != string.Empty)
                     {
-                        Filtro.Append(" AND Cod_Aluno = @cod");
+                        Filtro.Append(" AND a.Cod_Aluno = @cod");
                     }
 
                     if (txt_nome.Text != string.Empty)
                     {
-                        Filtro.Append(" AND Nome_Aluno LIKE @nome");
+                        Filtro.Append(" AND a.Nome_Aluno LIKE @nome");
                     }
 
                     if (cmb_turma.SelectedValue != null && cmb_turma.SelectedValue.ToString() != "*")
                     {
-                        Filtro.Append(" AND Turma = @turma");
+                        Filtro.Append(" AND a.Turma = @turma");
                     }
 
                     if (cmb_orientador.SelectedValue != null && cmb_orientador.SelectedValue.ToString() != "0")
                     {
-                        Filtro.Append(" AND Cod_Ori = @orientador");
+                        Filtro.Append(" AND a.Cod_Ori = @orientador");
                     }
 
                     using (MySqlCommand comando = new MySqlCommand(Filtro.ToString(), conexao))
@@ -288,25 +290,19 @@ namespace DCGest
                         {
                             while (leitor.Read())
                             {
-                                Aluno a = new Aluno();
-                                
-                                a.Cod_Aluno = Convert.ToInt32(leitor["Cod_Aluno"]);
-                                a.Nome_Aluno = leitor["Nome_Aluno"].ToString();
-                                a.Turma = leitor["Turma"].ToString();
-                                a.Cod_Curso = Convert.ToInt32(leitor["Cod_Curso"]);
-                                a.Estado_Estagio = leitor["Estado_Estagio"].ToString();
-                                a.Ano_Letivo = leitor["Ano_Letivo"].ToString();
+                                int? codOri = leitor["Cod_Ori"] == DBNull.Value ? null : (int?)Convert.ToInt32(leitor["Cod_Ori"]);
 
-                                if (leitor["Cod_Ori"] == DBNull.Value)
-                                {
-                                    a.Cod_Ori = null;
-                                }
-                                else
-                                {
-                                    a.Cod_Ori = Convert.ToInt32(leitor["Cod_Ori"]);
-                                }
-
-                                listaAlunos.Add(a);
+                                listaAlunos.Add(new Aluno(
+                                    Convert.ToInt32(leitor["Cod_Aluno"]),
+                                    leitor["Nome_Aluno"].ToString(),
+                                    leitor["Turma"].ToString(),
+                                    Convert.ToInt32(leitor["Cod_Curso"]),
+                                    leitor["Estado_Estagio"].ToString(),
+                                    codOri,
+                                    leitor["Ano_Letivo"].ToString(),
+                                    leitor["Nome_Curso"].ToString(),
+                                    leitor["Nome_Orientador"].ToString()
+                                ));
                             }
                         }
 

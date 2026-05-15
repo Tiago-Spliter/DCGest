@@ -1,4 +1,4 @@
-﻿using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -87,10 +87,10 @@ namespace DCGest
                         {
                             while (leitor.Read())
                             {
-                                listaCursos.Add(new Curso { 
-                                    Cod_Curso = Convert.ToInt32(leitor["Cod_Curso"]), 
-                                    Nome_Curso = leitor["Nome_Curso"].ToString() 
-                                });
+                                listaCursos.Add(new Curso(
+                                    Convert.ToInt32(leitor["Cod_Curso"]), 
+                                    leitor["Nome_Curso"].ToString() 
+                                ));
                             }
                         }
                     }
@@ -103,17 +103,17 @@ namespace DCGest
                     // Orientador
                     string sql_Orientador = "SELECT Cod_Orientador, Nome_Orientador FROM orientador ORDER BY Nome_Orientador";
                     listaOrientadores.Clear();
-                    listaOrientadores.Add(new Orientador { Cod_Orientador = 0, Nome_Orientador = "Sem Orientador" });
+                    listaOrientadores.Add(new Orientador(0, "Sem Orientador"));
                     using (MySqlCommand comando = new MySqlCommand(sql_Orientador, conexao))
                     {
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
                             while (leitor.Read())
                             {
-                                listaOrientadores.Add(new Orientador { 
-                                    Cod_Orientador = Convert.ToInt32(leitor["Cod_Orientador"]), 
-                                    Nome_Orientador = leitor["Nome_Orientador"].ToString() 
-                                });
+                                listaOrientadores.Add(new Orientador(
+                                    Convert.ToInt32(leitor["Cod_Orientador"]), 
+                                    leitor["Nome_Orientador"].ToString() 
+                                ));
                             }
                         }
                     }
@@ -271,21 +271,22 @@ namespace DCGest
                         return;
                     }
 
-                    Aluno novoAluno = new Aluno
-                    {
-                        Cod_Aluno = Convert.ToInt32(txtCodAluno.Text),
-                        Nome_Aluno = txtNomeAluno.Text.Trim(),
-                        Turma = cmb_Turma.SelectedValue.ToString(),
-                        Cod_Curso = Convert.ToInt32(cmb_Curso.SelectedValue),
-                        Ano_Letivo = cmb_Ano.SelectedValue.ToString(),
-                        Estado_Estagio = "Não Pronto"
-                    };
-
+                    int? codOri = null;
                     if (cmb_Orientador.SelectedItem != null)
                     {
                         var orientadorSelecionado = (Orientador)cmb_Orientador.SelectedItem;
-                        if (orientadorSelecionado.Cod_Orientador != 0) novoAluno.Cod_Ori = orientadorSelecionado.Cod_Orientador;
+                        if (orientadorSelecionado.Cod_Orientador != 0) codOri = orientadorSelecionado.Cod_Orientador;
                     }
+
+                    Aluno novoAluno = new Aluno(
+                        Convert.ToInt32(txtCodAluno.Text),
+                        txtNomeAluno.Text.Trim(),
+                        cmb_Turma.SelectedValue.ToString(),
+                        Convert.ToInt32(cmb_Curso.SelectedValue),
+                        "Não Pronto",
+                        codOri,
+                        cmb_Ano.SelectedValue.ToString()
+                    );
 
                     InserirAluno(novoAluno);
 
@@ -298,10 +299,7 @@ namespace DCGest
                             return;
                         }
 
-                        Orientador novoOri = new Orientador
-                        {
-                            Nome_Orientador = txtNomeOri.Text.Trim()
-                        };
+                        Orientador novoOri = new Orientador(0, txtNomeOri.Text.Trim());
 
                         InserirOrientador(novoOri);
 

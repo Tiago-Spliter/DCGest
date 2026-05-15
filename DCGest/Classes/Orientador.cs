@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DCGest.Classes
 {
@@ -10,5 +6,17 @@ namespace DCGest.Classes
     {
         public int Cod_Orientador { get; set; }
         public string Nome_Orientador { get; set; } = string.Empty;
+
+
+        public Orientador() 
+        {
+        
+        }
+
+        public Orientador(int codOrientador, string nomeOrientador)
+        {
+            Cod_Orientador = codOrientador;
+            Nome_Orientador = nomeOrientador;
+        }
     }
 }

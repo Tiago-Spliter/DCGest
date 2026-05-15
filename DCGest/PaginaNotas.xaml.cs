@@ -1,4 +1,4 @@
-﻿using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -94,16 +94,16 @@ namespace DCGest
                         {
                             while (leitor.Read())
                             {
-                                NotaModulo n = new NotaModulo();
-                                
-                                n.Cod_NotaMod = Convert.ToInt32(leitor["Cod_NotaMod"]);
-                                n.NomeModulo = leitor["Modulo"].ToString();
-                                n.NomeDisciplina = leitor["Disciplina"].ToString();
-
-                                n.Valor = leitor["Valor"] as int?;
-                                n.Data_Efetua = leitor["Data_Efetua"] as DateTime?;
-
-                                listaNotas.Add(n);
+                                listaNotas.Add(new NotaModulo(
+                                    Convert.ToInt32(leitor["Cod_NotaMod"]),
+                                    codAluno,
+                                    0,
+                                    leitor["Valor"] as int?,
+                                    leitor["Data_Efetua"] as DateTime?,
+                                    ano,
+                                    leitor["Modulo"].ToString(),
+                                    leitor["Disciplina"].ToString()
+                                ));
                             }
                         }
                     }
