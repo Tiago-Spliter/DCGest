@@ -16,6 +16,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using DCGest.Classes;
 
+using System.Text.RegularExpressions;
+
 namespace DCGest
 {
     /// <summary>
@@ -152,9 +154,21 @@ namespace DCGest
 
                 if (cmb_tipo.SelectedIndex == 0) // Aluno
                 {
-                    if (txtCodAluno.Text == null || txtNomeAluno.Text == null || cmb_Turma.SelectedItem == null || cmb_Curso.SelectedItem == null || cmb_Ano.SelectedItem == null)
+                    if (string.IsNullOrEmpty(txtCodAluno.Text) || string.IsNullOrEmpty(txtNomeAluno.Text) || cmb_Turma.SelectedItem == null || cmb_Curso.SelectedItem == null || cmb_Ano.SelectedItem == null)
                     {
                         MessageBox.Show("Preencha todos os campos obrigatórios do Aluno!");
+                        return;
+                    }
+
+                    if (Regex.IsMatch(txtCodAluno.Text, @"\D"))
+                    {
+                        MessageBox.Show("O código do aluno deve conter apenas números!");
+                        return;
+                    }
+
+                    if (!Regex.IsMatch(txtNomeAluno.Text, @"^[\p{L}\s]+$"))
+                    {
+                        MessageBox.Show("O nome do aluno deve conter apenas letras!");
                         return;
                     }
 
@@ -177,9 +191,15 @@ namespace DCGest
                 }
                 else // Orientador
                 {
-                    if (txtNomeOri.Text == null)
+                    if (txtNomeOri.Text == string.Empty)
                     {
                         MessageBox.Show("Preencha o nome do Orientador!");
+                        return;
+                    }
+
+                    if (!Regex.IsMatch(txtNomeOri.Text, @"^[\p{L}\s]+$"))
+                    {
+                        MessageBox.Show("O nome do orientador deve conter apenas letras!");
                         return;
                     }
 
@@ -188,12 +208,17 @@ namespace DCGest
 
                 if (novaEntidade != null)
                 {
-                    novaEntidade.InserirNaBD(caminho);
-                    MessageBox.Show("Registo guardado com sucesso!");
-
-                    if (novaEntidade.GetType() == typeof(Orientador)) CarregarCombos();
+                    var res = MessageBox.Show("Deseja confirmar a gravação deste registo?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
                     
-                    LimparCampos();
+                    if (res == MessageBoxResult.Yes)
+                    {
+                        novaEntidade.InserirNaBD(caminho);
+                        MessageBox.Show("Registo guardado com sucesso!");
+
+                        if (novaEntidade.GetType() == typeof(Orientador)) CarregarCombos();
+
+                        LimparCampos();
+                    }
                 }
             }
             catch (Exception ex)

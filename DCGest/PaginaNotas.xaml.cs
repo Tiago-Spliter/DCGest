@@ -120,6 +120,9 @@ namespace DCGest
 
         private void Btn_Click_Editar(object sender, RoutedEventArgs e)
         {
+            var res = MessageBox.Show("Deseja guardar todas as alterações feitas nas notas deste aluno?", "Confirmar Alterações", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (res == MessageBoxResult.No) return;
+
             try
             {
                 using (MySqlConnection conexao = new MySqlConnection(caminho))
