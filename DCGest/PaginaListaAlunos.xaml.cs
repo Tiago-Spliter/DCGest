@@ -46,7 +46,18 @@ namespace DCGest
         {
             try
             {
-                int cod = int.Parse(txt_numero.Text);
+                int cod;
+
+                if (dg_alunos.SelectedItem != null)
+                {
+                    Aluno selecionado = (Aluno)dg_alunos.SelectedItem;
+                    cod = selecionado.Cod_Aluno;
+                }
+                else
+                {
+                    MessageBox.Show("Por favor, selecione um aluno na lista.");
+                    return;
+                }
 
                 PaginaNotas janela = new PaginaNotas(cod);
                 janela.Show();
