@@ -126,53 +126,65 @@ namespace DCGest
                 {
                     conexao.Open();
 
-                    foreach (NotaModulo nota in listaNotas)
+                    using (MySqlTransaction transacao = conexao.BeginTransaction())
                     {
-                        if (nota.Valor != null)
+                        try
                         {
-                            nota.Data_Efetua = DateTime.Now;
+                            foreach (NotaModulo nota in listaNotas)
+                            {
+                                if (nota.Valor != null)
+                                {
+                                    nota.Data_Efetua = DateTime.Now;
+                                }
+                                else
+                                {
+                                    nota.Data_Efetua = null;
+                                }
+
+                                string sql = "UPDATE NotaMod SET Valor = @Valor, Data_Efetua = @Data WHERE Cod_NotaMod = @Id";
+
+                                using (MySqlCommand comando = new MySqlCommand(sql, conexao, transacao))
+                                {
+
+                                    if (nota.Valor == null)
+                                    {
+                                        comando.Parameters.AddWithValue("@Valor", DBNull.Value);
+                                    }
+                                    else
+                                    {
+                                        comando.Parameters.AddWithValue("@Valor", nota.Valor);
+                                    }
+
+                                    if (nota.Data_Efetua == null)
+                                    {
+                                        comando.Parameters.AddWithValue("@Data", DBNull.Value);
+                                    }
+                                    else
+                                    {
+                                        comando.Parameters.AddWithValue("@Data", nota.Data_Efetua);
+                                    }
+
+                                    comando.Parameters.AddWithValue("@Id", nota.Cod_NotaMod);
+
+                                    comando.ExecuteNonQuery();
+                                }
+                            }
+
+                            transacao.Commit();
+                            dg_alunos.Items.Refresh();
+                            MessageBox.Show("Notas guardadas com sucesso!");
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            nota.Data_Efetua = null;
-                        }
-
-                        string sql = "UPDATE NotaMod SET Valor = @Valor, Data_Efetua = @Data WHERE Cod_NotaMod = @Id";
-
-                        using (MySqlCommand comando = new MySqlCommand(sql, conexao))
-                        {
-
-                            if (nota.Valor == null)
-                            {
-                                comando.Parameters.AddWithValue("@Valor", DBNull.Value);
-                            }
-                            else
-                            {
-                                comando.Parameters.AddWithValue("@Valor", nota.Valor);
-                            }
-
-                            if (nota.Data_Efetua == null)
-                            {
-                                comando.Parameters.AddWithValue("@Data", DBNull.Value);
-                            }
-                            else
-                            {
-                                comando.Parameters.AddWithValue("@Data", nota.Data_Efetua);
-                            }
-
-                            comando.Parameters.AddWithValue("@Id", nota.Cod_NotaMod);
-
-                            comando.ExecuteNonQuery();
+                            transacao.Rollback();
+                            MessageBox.Show("Erro ao guardar notas: " + ex.Message);
                         }
                     }
                 }
-
-                dg_alunos.Items.Refresh();
-                MessageBox.Show("Notas guardadas com sucesso!");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao guardar notas: " + ex.Message);
+                MessageBox.Show("Erro de conexão ao guardar notas: " + ex.Message);
             }
         }
 

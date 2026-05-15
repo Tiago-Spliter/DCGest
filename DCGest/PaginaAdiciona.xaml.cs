@@ -144,128 +144,15 @@ namespace DCGest
             }
         }
 
-        private void InserirAluno(Aluno aluno)
-        {
-            try
-            {
-                using (MySqlConnection conexao = new MySqlConnection(caminho))
-                {
-                    conexao.Open();
-
-                    using (MySqlTransaction transacao = conexao.BeginTransaction())
-                    {
-                        try
-                        {
-                            // 1. Inserir o Aluno
-                            string InserirA = @"INSERT INTO aluno (Cod_Aluno, Nome_Aluno, Turma, Cod_Curso, Estado_Estagio, Cod_Ori, Ano_Letivo) 
-                                                VALUES (@Cod, @Nome, @Turma, @Curso, @Estado_Estagio, @Orientador, @Ano)";
-
-                            using (MySqlCommand comando = new MySqlCommand(InserirA, conexao, transacao))
-                            {
-                                comando.Parameters.AddWithValue("@Cod", aluno.Cod_Aluno);
-                                comando.Parameters.AddWithValue("@Nome", aluno.Nome_Aluno);
-                                comando.Parameters.AddWithValue("@Turma", aluno.Turma);
-                                comando.Parameters.AddWithValue("@Curso", aluno.Cod_Curso);
-                                comando.Parameters.AddWithValue("@Estado_Estagio", aluno.Estado_Estagio);
-                                comando.Parameters.AddWithValue("@Orientador", aluno.Cod_Ori);
-                                comando.Parameters.AddWithValue("@Ano", aluno.Ano_Letivo);
-
-                                comando.ExecuteNonQuery();
-                            }
-
-                            string sql_Modulos = @"SELECT m.Cod_Modulo, d.Ano 
-                                                   FROM Modulos m 
-                                                   INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc 
-                                                   WHERE d.Cod_Curso = @Curso";
-
-                            Dictionary<int, string> Modulos = new Dictionary<int, string>();
-
-                            using (MySqlCommand comando = new MySqlCommand(sql_Modulos, conexao, transacao))
-                            {
-                                comando.Parameters.AddWithValue("@Curso", aluno.Cod_Curso);
-
-                                using (MySqlDataReader leitor = comando.ExecuteReader())
-                                {
-                                    while (leitor.Read())
-                                    {
-                                        Modulos.Add(Convert.ToInt32(leitor["Cod_Modulo"]), leitor["Ano"].ToString());
-                                    }
-                                }
-                            }
-
-                            string sql_InserirNota = "INSERT INTO NotaMod (Cod_Aluno, Cod_Modulo, Ano) VALUES (@Aluno, @Modulo, @Ano)";
-
-                            foreach (var mod in Modulos)
-                            {
-                                using (MySqlCommand comando = new MySqlCommand(sql_InserirNota, conexao, transacao))
-                                {
-                                    comando.Parameters.AddWithValue("@Aluno", aluno.Cod_Aluno);
-                                    comando.Parameters.AddWithValue("@Modulo", mod.Key);
-                                    comando.Parameters.AddWithValue("@Ano", mod.Value);
-
-                                    comando.ExecuteNonQuery();
-                                }
-                            }
-
-                            transacao.Commit();
-                            MessageBox.Show("Aluno e registos de notas inseridos com sucesso!");
-                        }
-                        catch (Exception ex)
-                        {
-                            transacao.Rollback();
-                            MessageBox.Show("Não foi possivel adicionar aluno: " + ex.Message);
-                        }
-                    }
-                }
-
-                txtCodAluno.Text = string.Empty;
-                txtNomeAluno.Text = string.Empty;
-                txtNomeOri.Text = string.Empty;
-                cmb_Turma.SelectedIndex = -1;
-                cmb_Curso.SelectedIndex = -1;
-                cmb_Ano.SelectedIndex = -1;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Erro ao inserir aluno: " + ex.Message);
-            }
-        }
-
-        private void InserirOrientador(Orientador orientador)
-        {
-            try
-            {
-                using (MySqlConnection conexao = new MySqlConnection(caminho))
-                {
-                    conexao.Open();
-
-                    string sql = "INSERT INTO orientador (Nome_Orientador) VALUES (@Nome)";
-
-                    using (MySqlCommand comando = new MySqlCommand(sql, conexao))
-                    {
-                        comando.Parameters.AddWithValue("@Nome", orientador.Nome_Orientador.Trim());
-
-                        comando.ExecuteNonQuery();
-                    }
-                }
-
-                MessageBox.Show("Orientador inserido com sucesso!");
-                CarregarCombos(); 
-                txtNomeOri.Text = string.Empty; 
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Erro ao inserir orientador: " + ex.Message);
-            }
-        }
-
         private void Btn_Click_Guardar(object sender, RoutedEventArgs e)
         {
             try
             {
+                Entidade novaEntidade = null;
+
                 if (cmb_tipo.SelectedIndex == 0) // Aluno
                 {
-                    if (txtCodAluno.Text == string.Empty || txtNomeAluno.Text == string.Empty || cmb_Turma.SelectedItem == null || cmb_Curso.SelectedItem == null || cmb_Ano.SelectedItem == null)
+                    if (txtCodAluno.Text == null || txtNomeAluno.Text == null || cmb_Turma.SelectedItem == null || cmb_Curso.SelectedItem == null || cmb_Ano.SelectedItem == null)
                     {
                         MessageBox.Show("Preencha todos os campos obrigatórios do Aluno!");
                         return;
@@ -278,7 +165,7 @@ namespace DCGest
                         if (orientadorSelecionado.Cod_Orientador != 0) codOri = orientadorSelecionado.Cod_Orientador;
                     }
 
-                    Aluno novoAluno = new Aluno(
+                    novaEntidade = new Aluno(
                         Convert.ToInt32(txtCodAluno.Text),
                         txtNomeAluno.Text.Trim(),
                         cmb_Turma.SelectedValue.ToString(),
@@ -287,41 +174,50 @@ namespace DCGest
                         codOri,
                         cmb_Ano.SelectedValue.ToString()
                     );
-
-                    InserirAluno(novoAluno);
-
-                    }
-                    else // Orientador
+                }
+                else // Orientador
+                {
+                    if (txtNomeOri.Text == null)
                     {
-                        if (txtNomeOri.Text == string.Empty)
-                        {
-                            MessageBox.Show("Preencha o nome do Orientador!");
-                            return;
-                        }
-
-                        Orientador novoOri = new Orientador(0, txtNomeOri.Text.Trim());
-
-                        InserirOrientador(novoOri);
-
+                        MessageBox.Show("Preencha o nome do Orientador!");
+                        return;
                     }
+
+                    novaEntidade = new Orientador(0, txtNomeOri.Text.Trim());
+                }
+
+                if (novaEntidade != null)
+                {
+                    novaEntidade.InserirNaBD(caminho);
+                    MessageBox.Show("Registo guardado com sucesso!");
+
+                    if (novaEntidade.GetType() == typeof(Orientador)) CarregarCombos();
+                    
+                    LimparCampos();
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao guardar dados: " + ex.Message);
+                MessageBox.Show("Erro ao guardar dados (Polimorfismo): " + ex.Message);
             }
+        }
+
+        private void LimparCampos()
+        {
+            txtCodAluno.Text = string.Empty;
+            txtNomeAluno.Text = string.Empty;
+            txtNomeOri.Text = string.Empty;
+            cmb_Turma.SelectedIndex = -1;
+            cmb_Curso.SelectedIndex = -1;
+            cmb_Orientador.SelectedIndex = -1;
+            cmb_Ano.SelectedIndex = -1;
         }
 
         private void Btn_Click_Limpar(object sender, RoutedEventArgs e)
         {
             try
             {
-                txtCodAluno.Text = string.Empty;
-                txtNomeAluno.Text = string.Empty;
-                txtNomeOri.Text = string.Empty;
-                cmb_Turma.SelectedIndex = -1;
-                cmb_Curso.SelectedIndex = -1;
-                cmb_Orientador.SelectedIndex = -1;
-                cmb_Ano.SelectedIndex = -1;
+                LimparCampos();
             }
             catch (Exception ex)
             {

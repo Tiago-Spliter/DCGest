@@ -51,9 +51,9 @@ namespace DCGest
                 PaginaNotas janela = new PaginaNotas(cod);
                 janela.Show();
             }
-            catch
+            catch (Exception ex)
             {
-                MessageBox.Show("Código inválido!");
+                MessageBox.Show("Ocorreu um erro ao tentar selecionar o aluno: " + ex.Message);
                 return;
             }
         }
