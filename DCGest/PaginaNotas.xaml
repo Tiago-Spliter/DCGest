@@ -16,9 +16,7 @@
         <!-- Header -->
         <Border Grid.Row="0" Background="#293472">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Width="60" Height="60" Background="#EFE6D8" CornerRadius="30" Margin="30,0,20,0">
-                    <TextBlock Text="🎓" FontSize="35" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
+                <Image Source="/Logo/DCGest.png" Width="60" Height="60" Margin="30,0,20,0" Stretch="Uniform"/>
                 <TextBlock Text="Notas do Aluno:" FontSize="24" FontWeight="SemiBold" Foreground="#D0D6E2" VerticalAlignment="Center"/>
                 <TextBlock Name="txtNomeAluno" Text="Nome do Aluno" FontSize="24" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" Margin="15,0,0,0"/>
             </StackPanel>

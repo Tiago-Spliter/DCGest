@@ -88,7 +88,10 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <Button Content="Ver Notas do Aluno Selecionado" Grid.Row="2" Height="45" Width="300" FontSize="16" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" Margin="0,20,0,0" HorizontalAlignment="Center" Cursor="Hand" Click="Btn_Click_Seleciona"/>
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                    <Button Content="Ver Notas" Height="45" Width="200" FontSize="16" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" Cursor="Hand" Click="Btn_Click_Seleciona" Margin="0,0,10,0"/>
+                    <Button Content="Gerar PDF 📄" Height="45" Width="200" FontSize="16" FontWeight="SemiBold" Foreground="#293472" Background="White" BorderBrush="#293472" BorderThickness="1" Cursor="Hand" Click="Btn_Click_GerarPDF"/>
+                </StackPanel>
             </Grid>
         </Grid>
 

@@ -14,9 +14,7 @@
             <Border Background="White" CornerRadius="20" Padding="50" BorderBrush="#E0E6ED" BorderThickness="1" MaxWidth="1000">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,30">
-                        <Border Width="80" Height="80" Background="#293472" CornerRadius="40">
-                            <TextBlock Text="🎓" FontSize="45" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Image Source="/Logo/DCGest.png" Width="100" Height="100" Stretch="Uniform"/>
                         <TextBlock Text="DCGest" VerticalAlignment="Center" Margin="25,0,0,0" FontSize="56" FontWeight="Bold" Foreground="#1A2E52"/>
                     </StackPanel>
 

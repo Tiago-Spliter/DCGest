@@ -330,6 +330,31 @@ namespace DCGest
 
 
 
+        private void Btn_Click_GerarPDF(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (dg_alunos.SelectedItem != null)
+                {
+                    Aluno selecionado = (Aluno)dg_alunos.SelectedItem;
+
+                    GeradorPDF gerador = new GeradorPDF();
+                    string caminhoPdf = gerador.GerarRelatorioAluno(selecionado);
+
+                    JanelaPreviewPDF preview = new JanelaPreviewPDF(caminhoPdf);
+                    preview.ShowDialog();
+                }
+                else
+                {
+                    MessageBox.Show("Por favor, selecione um aluno na lista para gerar o relatório.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao gerar PDF: " + ex.Message);
+            }
+        }
+
         private void Btn_Click_Filtrar(object sender, RoutedEventArgs e)
         {
             FiltrarAlunos();

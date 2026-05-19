@@ -16,12 +16,19 @@
         <!-- Menu Lateral -->
         <Border Grid.Column="0" Background="#293472">
             <StackPanel>
-                <!-- Logo -->
-                <StackPanel Orientation="Horizontal" Margin="30,40,0,50">
-                    <Border Width="45" Height="45" Background="#EFE6D8" CornerRadius="10">
-                        <TextBlock Text="DC" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" Foreground="#293472" FontSize="20"/>
-                    </Border>
-                    <TextBlock Text="DCGest" VerticalAlignment="Center" Margin="15,0,0,0" FontSize="26" FontWeight="Bold" Foreground="White"/>
+                <!-- Cabeçalho do Menu -->
+                <StackPanel Margin="0,45,0,40">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Border Background="White" CornerRadius="12" Padding="8" Width="55" Height="55">
+                            <Image Source="/Logo/DCGest.png" Stretch="Uniform"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Margin="15,0,0,0">
+                            <TextBlock Text="DCGest" FontSize="28" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Text="GESTÃO ACADÉMICA" FontSize="10" FontWeight="SemiBold" Foreground="#8A92B2"/>
+                        </StackPanel>
+                    </StackPanel>
+                    
+                    <Rectangle Height="1" Fill="#3E4989" Margin="30,35,30,0"/>
                 </StackPanel>
 
                 <!-- Navegação -->
@@ -45,7 +52,7 @@
                 </Grid>
             </Border>
 
-            <!-- Frame (Ajustado para Esticar) -->
+            <!-- Frame -->
             <Frame Name="frm" Grid.Row="1" NavigationUIVisibility="Hidden" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         </Grid>
     </Grid>
