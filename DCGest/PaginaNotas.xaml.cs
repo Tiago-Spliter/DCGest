@@ -88,7 +88,8 @@ namespace DCGest
                                    FROM NotaMod n 
                                    INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo 
                                    INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc 
-                                   WHERE n.Ano = @Ano AND n.Cod_Aluno = @Aluno";
+                                   WHERE n.Ano = @Ano AND n.Cod_Aluno = @Aluno
+                                   ORDER BY d.Tipo, d.Designacao, m.Cod_Modulo";
 
                     using (MySqlCommand comando = new MySqlCommand(sql, conexao))
                     {
@@ -103,8 +104,8 @@ namespace DCGest
                                     Convert.ToInt32(leitor["Cod_NotaMod"]),
                                     codAluno,
                                     0,
-                                    leitor["Valor"] as int?,
-                                    leitor["Data_Efetua"] as DateTime?,
+                                    leitor["Valor"] == DBNull.Value ? null : (int?)Convert.ToInt32(leitor["Valor"]),
+                                    leitor["Data_Efetua"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(leitor["Data_Efetua"]),
                                     ano,
                                     leitor["Modulo"].ToString(),
                                     leitor["Disciplina"].ToString(),
@@ -126,13 +127,21 @@ namespace DCGest
             }
         }
 
+        private int GetPrioridadeTipo(string tipo)
+        {
+            if (tipo.ToLower().Contains("sociocultural")) return 1;
+            if (tipo.ToLower().Contains("científica")) return 2;
+            if (tipo.ToLower().Contains("técnica")) return 3;
+            return 4;
+        }
+
         private void CalcularResumos()
         {
             try
             {
                 listaMedias.Clear();
 
-                // 1. Agrupar notas por Disciplina manualmente para a tabela da direita
+                // 1. Agrupar notas por Disciplina
                 Dictionary<string, List<NotaModulo>> grupos = new Dictionary<string, List<NotaModulo>>();
 
                 foreach (NotaModulo nota in listaNotas)
@@ -144,8 +153,11 @@ namespace DCGest
                     grupos[nota.NomeDisciplina].Add(nota);
                 }
 
-                // 2. Calcular a média e situação de cada disciplina
-                foreach (var par in grupos)
+                // 2. Ordenar grupos pela prioridade do tipo
+                var gruposOrdenados = grupos.OrderBy(g => GetPrioridadeTipo(g.Value[0].TipoDisciplina)).ThenBy(g => g.Key);
+
+                // 3. Calcular a média e situação de cada disciplina
+                foreach (var par in gruposOrdenados)
                 {
                     string nome = par.Key;
                     List<NotaModulo> notasDaDisciplina = par.Value;
@@ -157,14 +169,14 @@ namespace DCGest
 
                     foreach (NotaModulo n in notasDaDisciplina)
                     {
-                        // Se tem nota lançada (> 0)
-                        if (n.Valor != null && n.Valor > 0)
+                        // Se tem nota lançada (incluindo 0)
+                        if (n.Valor != null && n.Valor >= 0)
                         {
                             somaNotas = somaNotas + (double)n.Valor;
                             contadorModulosComNota = contadorModulosComNota + 1;
                         }
 
-                        // Verifica se falta alguma nota ou se é negativa para a situação
+                        // Situação: Aprovado (C) se >= 10, senão SC
                         if (n.Valor == null || n.Valor < 10)
                         {
                             reprovouAlgumModulo = true;
@@ -177,11 +189,7 @@ namespace DCGest
                         mediaCalculada = somaNotas / contadorModulosComNota;
                     }
 
-                    string estado = "Em curso";
-                    if (reprovouAlgumModulo == false)
-                    {
-                        estado = "Concluído";
-                    }
+                    string estado = reprovouAlgumModulo ? "SC" : "C";
 
                     listaMedias.Add(new MediaDisciplina(nome, tipo, mediaCalculada, contadorModulosComNota, estado));
                 }
@@ -189,16 +197,16 @@ namespace DCGest
                 dg_medias.ItemsSource = null;
                 dg_medias.ItemsSource = listaMedias;
 
-                // 3. Calcular Médias por Género para o painel inferior
+                // 4. Calcular Médias por Género para o painel inferior
                 double somaGeral = 0, somaCien = 0, somaTec = 0;
                 int contGeral = 0, contCien = 0, contTec = 0;
 
                 foreach (NotaModulo n in listaNotas)
                 {
-                    if (n.Valor != null && n.Valor > 0)
+                    if (n.Valor != null && n.Valor >= 0)
                     {
                         double valorNota = (double)n.Valor;
-                        
+
                         somaGeral = somaGeral + valorNota;
                         contGeral = contGeral + 1;
 
@@ -216,35 +224,25 @@ namespace DCGest
                     }
                 }
 
-                // Mostrar resultados nas caixas de texto
-                if (contGeral > 0) txt_mediaGeral.Text = (somaGeral / contGeral).ToString("N2");
-                else txt_mediaGeral.Text = "---";
+                // Mostrar resultados
+                txt_mediaGeral.Text = contGeral > 0 ? (somaGeral / contGeral).ToString("N2") : "0,00";
+                txt_mediaCientifica.Text = contCien > 0 ? (somaCien / contCien).ToString("N2") : "0,00";
+                txt_mediaTecnica.Text = contTec > 0 ? (somaTec / contTec).ToString("N2") : "0,00";
 
-                if (contCien > 0) txt_mediaCientifica.Text = (somaCien / contCien).ToString("N2");
-                else txt_mediaCientifica.Text = "---";
-
-                if (contTec > 0) txt_mediaTecnica.Text = (somaTec / contTec).ToString("N2");
-                else txt_mediaTecnica.Text = "---";
-
-                // 4. Média Final do Aluno (Visual)
+                // 5. Média Final do Aluno
                 double fct = 0, pap = 0;
                 if (txt_notaFCT.Text != "") fct = Convert.ToDouble(txt_notaFCT.Text);
                 if (txt_notaPAP.Text != "") pap = Convert.ToDouble(txt_notaPAP.Text);
 
-                if (contGeral > 0)
-                {
-                    double mediaDasNotas = somaGeral / contGeral;
-                    double divisor = 1;
-                    if (fct > 0 && pap > 0) divisor = 3;
+                double mediaDasNotas = contGeral > 0 ? (somaGeral / contGeral) : 0;
+                double divisor = 3; // Média + FCT + PAP
 
-                    double mFinal = (mediaDasNotas + fct + pap) / divisor;
-                    lbl_mediaFinal.Text = mFinal.ToString("N1");
-                }
+                double mFinal = (mediaDasNotas + fct + pap) / divisor;
+                lbl_mediaFinal.Text = mFinal.ToString("N1");
             }
             catch (Exception ex)
             {
-                // Erro apenas para debug se necessário
-                System.Diagnostics.Debug.WriteLine("Erro cálculo: " + ex.Message);
+                MessageBox.Show("Erro cálculo: " + ex.Message);
             }
         }
 

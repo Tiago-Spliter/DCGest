@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using DCGest.Classes;
 
 namespace DCGest.Classes
 {
@@ -12,140 +13,232 @@ namespace DCGest.Classes
     {
         private string connectionString = BD.CaminhoBD;
 
+        // CORES COMPONENTES
+        BaseColor corSociocultural = new BaseColor(242, 220, 219); // Rosa
+        BaseColor corCientifica = new BaseColor(216, 228, 188);    // Verde
+        BaseColor corTecnica = new BaseColor(250, 191, 143);       // Laranja
+        BaseColor corFCT = new BaseColor(183, 222, 232);          // Azul
+        BaseColor corPAP = new BaseColor(242, 220, 219);          // Rosa
+
+        // CORES ANOS
+        BaseColor corFundoAno1 = new BaseColor(252, 213, 180);    
+        BaseColor corFundoAno2 = new BaseColor(216, 228, 188);    
+        BaseColor corFundoAno3 = new BaseColor(230, 184, 183);    
+
+        // CORES CABEÇALHOS ANOS
+        BaseColor corHeaderAno1 = new BaseColor(228, 108, 10);    
+        BaseColor corHeaderAno2 = new BaseColor(118, 147, 60);    
+        BaseColor corHeaderAno3 = new BaseColor(148, 54, 52);     
+
         public string GerarRelatorioAluno(Aluno aluno)
         {
             string pastaTemp = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Relatorios");
             if (!Directory.Exists(pastaTemp)) Directory.CreateDirectory(pastaTemp);
-
             string caminhoPdf = Path.Combine(pastaTemp, $"Relatorio_{aluno.Cod_Aluno}.pdf");
 
-            Document doc = new Document(PageSize.A4.Rotate(), 30, 30, 30, 30);
+            // Margens menores para caber tudo na mesma página
+            Document doc = new Document(PageSize.A4.Rotate(), 20, 20, 15, 15);
             PdfWriter writer = PdfWriter.GetInstance(doc, new FileStream(caminhoPdf, FileMode.Create));
-
             doc.Open();
 
-            // Fontes
-            Font fontTitulo = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 22, BaseColor.BLACK);
-            Font fontSubtitulo = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.DARK_GRAY);
-            Font fontCorpo = FontFactory.GetFont(FontFactory.HELVETICA, 12, BaseColor.BLACK);
-            Font fontHeaderTabela = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.WHITE);
-            Font fontCelula = FontFactory.GetFont(FontFactory.HELVETICA, 9, BaseColor.BLACK);
+            Font fBase = FontFactory.GetFont(FontFactory.HELVETICA, 7, BaseColor.BLACK);
+            Font fBold = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 7, BaseColor.BLACK);
+            Font fTitle = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.BLACK);
 
-            // Cabeçalho do Relatório
-            Paragraph pTitulo = new Paragraph("RELATÓRIO DE AVALIAÇÃO ACADÉMICA", fontTitulo);
-            pTitulo.Alignment = Element.ALIGN_CENTER;
-            pTitulo.SpacingAfter = 20;
-            doc.Add(pTitulo);
+            // 1. CABEÇALHO COMPLETO
+            PdfPTable tabHeader = new PdfPTable(2);
+            tabHeader.WidthPercentage = 100;
+            tabHeader.SetWidths(new float[] { 1, 1 });
 
-            // Info Aluno
-            doc.Add(new Paragraph($"Nome do Aluno: {aluno.Nome_Aluno}", fontCorpo));
-            doc.Add(new Paragraph($"Turma: {aluno.Turma} | Ano Letivo: {aluno.Ano_Letivo}", fontCorpo));
-            doc.Add(new Paragraph($"Curso: {aluno.Nome_Curso}", fontCorpo));
-            doc.Add(new Paragraph($"Orientador: {aluno.Nome_Orientador}", fontCorpo));
-            doc.Add(new Paragraph(" ", fontCorpo)); // Espaço
+            PdfPCell cellTitle = new PdfPCell(new Phrase("REGISTO BIOGRÁFICO DE AVALIAÇÃO", fTitle));
+            cellTitle.Colspan = 2; cellTitle.Border = 0; cellTitle.PaddingBottom = 10; cellTitle.HorizontalAlignment = Element.ALIGN_CENTER;
+            tabHeader.AddCell(cellTitle);
 
-            // Obter Dados da Base de Dados
-            var dados = ObterDadosAvaliacao(aluno.Cod_Aluno);
+            PdfPCell cellEsq = new PdfPCell(); cellEsq.Border = 0;
+            cellEsq.AddElement(new Phrase("ALUNO: " + aluno.Nome_Aluno.ToUpper(), fBold));
+            cellEsq.AddElement(new Phrase("Nº PROCESSO: " + aluno.Cod_Aluno, fBase));
+            cellEsq.AddElement(new Phrase("CURSO: " + aluno.Nome_Curso, fBase));
+            tabHeader.AddCell(cellEsq);
 
-            // Agrupar por Tipo de Disciplina
-            var grupos = dados.GroupBy(d => d.TipoDisciplina).OrderBy(g => g.Key);
+            PdfPCell cellDir = new PdfPCell(); cellDir.Border = 0; cellDir.HorizontalAlignment = Element.ALIGN_RIGHT;
+            Paragraph pDir = new Paragraph();
+            pDir.Alignment = Element.ALIGN_RIGHT;
+            pDir.Add(new Phrase("TURMA: " + aluno.Turma + "\n", fBase));
+            pDir.Add(new Phrase("ANO LETIVO: " + aluno.Ano_Letivo + "\n", fBase));
+            pDir.Add(new Phrase("ORIENTADOR: " + aluno.Nome_Orientador, fBase));
+            cellDir.AddElement(pDir);
+            tabHeader.AddCell(cellDir);
 
-            foreach (var grupo in grupos)
+            doc.Add(tabHeader);
+
+            // 2. GRELHA DE MÓDULOS (Sem ID, 20 Colunas)
+            PdfPTable gridM = new PdfPTable(20);
+            gridM.WidthPercentage = 100;
+            float[] wGrid = new float[20];
+            wGrid[0] = 5f; // Disciplinas
+            for (int i = 1; i < 20; i++) wGrid[i] = 1f;
+            gridM.SetWidths(wGrid);
+
+            BaseColor cGray = new BaseColor(211, 211, 211);
+            gridM.AddCell(new PdfPCell(new Phrase("DISCIPLINAS", fBold)) { BackgroundColor = cGray, Padding = 2 });
+            for (int i = 1; i <= 19; i++) gridM.AddCell(new PdfPCell(new Phrase("M" + i, fBold)) { BackgroundColor = cGray, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
+
+            var todasNotas = ObterTodasNotas(aluno.Cod_Aluno);
+
+            // ORDEM: SOCIOCULTURAL (1), CIENTIFICA (2), TECNICA (3)
+            var gruposComponentes = todasNotas.GroupBy(n => n.NomeDisciplina).OrderBy(g => GetPrioridadeTipo(g.First().TipoDisciplina)).ThenBy(g => g.Key);
+
+            foreach (var disc in gruposComponentes)
             {
-                doc.Add(new Paragraph($"Componente de Formação: {grupo.Key}", fontSubtitulo));
-                doc.Add(new Paragraph(" ", fontCorpo));
+                gridM.AddCell(new PdfPCell(new Phrase(disc.Key, fBase)) { BackgroundColor = GetCorComponente(disc.First().TipoDisciplina), Padding = 2 });
 
-                // Definir Cor Base pelo Tipo
-                BaseColor corFundo = BaseColor.LIGHT_GRAY;
-                if (grupo.Key.ToLower().Contains("técnica")) corFundo = new BaseColor(215, 225, 255); // Azul claro
-                else if (grupo.Key.ToLower().Contains("científica")) corFundo = new BaseColor(215, 255, 215); // Verde claro
-
-                // Criar Tabela
-                // Vamos assumir um máximo de 15 módulos por disciplina para a estrutura da tabela
-                PdfPTable tabela = new PdfPTable(16); // 1 para Disciplina + 15 para Módulos
-                tabela.WidthPercentage = 100;
-                float[] widths = new float[16];
-                widths[0] = 3f; // Disciplina mais larga
-                for (int i = 1; i < 16; i++) widths[i] = 1f;
-                tabela.SetWidths(widths);
-
-                // Header da Tabela
-                PdfPCell cellHeader = new PdfPCell(new Phrase("Disciplina", fontHeaderTabela));
-                cellHeader.BackgroundColor = new BaseColor(41, 52, 114); // Azul Escuro do projeto
-                cellHeader.HorizontalAlignment = Element.ALIGN_CENTER;
-                cellHeader.Padding = 5;
-                tabela.AddCell(cellHeader);
-
-                for (int i = 1; i <= 15; i++)
+                var mods = disc.OrderBy(m => m.Cod_Modulo).ToList();
+                for (int i = 0; i < 19; i++)
                 {
-                    PdfPCell h = new PdfPCell(new Phrase($"M{i}", fontHeaderTabela));
-                    h.BackgroundColor = new BaseColor(41, 52, 114);
-                    h.HorizontalAlignment = Element.ALIGN_CENTER;
-                    h.Padding = 5;
-                    tabela.AddCell(h);
-                }
-
-                // Linhas (Disciplinas)
-                var disciplinas = grupo.GroupBy(d => d.NomeDisciplina);
-                foreach (var disc in disciplinas)
-                {
-                    PdfPCell cDisc = new PdfPCell(new Phrase(disc.Key, fontCelula));
-                    cDisc.BackgroundColor = corFundo;
-                    cDisc.Padding = 5;
-                    tabela.AddCell(cDisc);
-
-                    // Módulos e Notas
-                    var modulos = disc.OrderBy(m => m.CodModulo).ToList();
-                    for (int i = 0; i < 15; i++)
+                    string v = "";
+                    BaseColor bgCell = BaseColor.WHITE;
+                    if (i < mods.Count)
                     {
-                        string notaStr = "";
-                        if (i < modulos.Count)
-                        {
-                            notaStr = modulos[i].Valor?.ToString() ?? "-";
-                        }
-                        
-                        PdfPCell cNota = new PdfPCell(new Phrase(notaStr, fontCelula));
-                        cNota.HorizontalAlignment = Element.ALIGN_CENTER;
-                        cNota.VerticalAlignment = Element.ALIGN_MIDDLE;
-                        cNota.BackgroundColor = (i < modulos.Count) ? BaseColor.WHITE : new BaseColor(245, 245, 245);
-                        tabela.AddCell(cNota);
+                        v = mods[i].Valor?.ToString() ?? "0";
+                        bgCell = GetCorFundoAno(mods[i].Ano);
                     }
+                    gridM.AddCell(new PdfPCell(new Phrase(v, fBase)) { BackgroundColor = bgCell, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
                 }
-
-                doc.Add(tabela);
-                doc.Add(new Paragraph(" ", fontCorpo));
             }
 
-            // Nota Final (Visual Placeholder)
-            doc.Add(new Paragraph(" ", fontCorpo));
-            PdfPTable tabFinal = new PdfPTable(3);
-            tabFinal.WidthPercentage = 50;
-            tabFinal.HorizontalAlignment = Element.ALIGN_RIGHT;
+            // FCT e PAP
+            gridM.AddCell(new PdfPCell(new Phrase("FCT", fBase)) { BackgroundColor = corFCT, Padding = 2 });
+            gridM.AddCell(new PdfPCell(new Phrase("0", fBase)) { BackgroundColor = corFCT, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
+            for (int i = 0; i < 18; i++) gridM.AddCell(new PdfPCell(new Phrase("", fBase)) { Border = 0 });
 
-            tabFinal.AddCell(new PdfPCell(new Phrase("Média Final do Aluno", fontHeaderTabela)) { BackgroundColor = new BaseColor(41, 52, 114), Padding = 8, Colspan = 2 });
-            tabFinal.AddCell(new PdfPCell(new Phrase("---", fontSubtitulo)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 8 });
+            gridM.AddCell(new PdfPCell(new Phrase("PAP", fBase)) { BackgroundColor = corPAP, Padding = 2 });
+            gridM.AddCell(new PdfPCell(new Phrase("0", fBase)) { BackgroundColor = corPAP, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
+            for (int i = 0; i < 18; i++) gridM.AddCell(new PdfPCell(new Phrase("", fBase)) { Border = 0 });
 
-            doc.Add(tabFinal);
+            doc.Add(gridM);
 
+            // 3. MÉDIAS E FINAL (Compacto)
+            PdfPTable rowMedias = new PdfPTable(2);
+            rowMedias.WidthPercentage = 100;
+            rowMedias.SetWidths(new float[] { 1, 3 });
+
+            // Bloco Médias Modalidades
+            PdfPTable tabMediasMod = new PdfPTable(2);
+            tabMediasMod.AddCell(new PdfPCell(new Phrase("Média das Sociocultural", fBase)) { Border = 0 });
+            tabMediasMod.AddCell(new PdfPCell(new Phrase(CalcularMedia(todasNotas, "sociocultural"), fBold)) { HorizontalAlignment = Element.ALIGN_CENTER });
+            tabMediasMod.AddCell(new PdfPCell(new Phrase("Média das Científicas", fBase)) { Border = 0 });
+            tabMediasMod.AddCell(new PdfPCell(new Phrase(CalcularMedia(todasNotas, "científica"), fBold)) { HorizontalAlignment = Element.ALIGN_CENTER });
+            tabMediasMod.AddCell(new PdfPCell(new Phrase("Média das Técnicas", fBase)) { Border = 0 });
+            tabMediasMod.AddCell(new PdfPCell(new Phrase(CalcularMedia(todasNotas, "técnica"), fBold)) { HorizontalAlignment = Element.ALIGN_CENTER });
+
+            PdfPCell cellMedias = new PdfPCell(tabMediasMod) { Border = 0, VerticalAlignment = Element.ALIGN_BOTTOM };
+            rowMedias.AddCell(cellMedias);
+
+            // Bloco Média Final
+            PdfPTable tabMF = new PdfPTable(2);
+            tabMF.WidthPercentage = 50;
+            tabMF.HorizontalAlignment = Element.ALIGN_RIGHT;
+            tabMF.AddCell(new PdfPCell(new Phrase("Média final de curso", fBold)) { BackgroundColor = new BaseColor(255, 255, 0), Padding = 3 });
+            tabMF.AddCell(new PdfPCell(new Phrase("---", fBold)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 3 });
+            
+            PdfPCell cellMF = new PdfPCell(tabMF) { Border = 0, VerticalAlignment = Element.ALIGN_BOTTOM, HorizontalAlignment = Element.ALIGN_RIGHT };
+            rowMedias.AddCell(cellMF);
+
+            doc.Add(new Paragraph(" "));
+            doc.Add(rowMedias);
+
+            // 4. BLOCOS DE RODAPÉ
+            doc.Add(new Paragraph(" "));
+            PdfPTable tabAnos = new PdfPTable(3);
+            tabAnos.WidthPercentage = 100;
+            tabAnos.SetWidths(new float[] { 1, 1, 1 });
+
+            tabAnos.AddCell(CriarMiniTabelaAno(todasNotas, "1º Ano", corHeaderAno1, fBase, fBold));
+            tabAnos.AddCell(CriarMiniTabelaAno(todasNotas, "2º Ano", corHeaderAno2, fBase, fBold));
+            tabAnos.AddCell(CriarMiniTabelaAno(todasNotas, "3º Ano", corHeaderAno3, fBase, fBold));
+            
+            doc.Add(tabAnos);
             doc.Close();
-
             return caminhoPdf;
         }
 
-        private List<InfoNotaPDF> ObterDadosAvaliacao(int codAluno)
+        private PdfPCell CriarMiniTabelaAno(List<NotaModulo> notas, string ano, BaseColor cHeader, Font fBase, Font fBold)
         {
-            List<InfoNotaPDF> lista = new List<InfoNotaPDF>();
+            PdfPCell cell = new PdfPCell() { Border = 0, Padding = 3 };
+            var notasAno = notas.Where(n => n.Ano == ano).ToList();
+
+            PdfPTable head = new PdfPTable(2);
+            head.AddCell(new PdfPCell(new Phrase("Total", fBase)) { BackgroundColor = corSociocultural, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
+            head.AddCell(new PdfPCell(new Phrase("Técnicas", fBase)) { BackgroundColor = corSociocultural, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
+            head.AddCell(new PdfPCell(new Phrase(notasAno.Count(n => n.Valor > 0).ToString(), fBold)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
+            head.AddCell(new PdfPCell(new Phrase(notasAno.Count(n => n.TipoDisciplina.ToLower().Contains("técnica") && n.Valor > 0).ToString(), fBold)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
+            cell.AddElement(head);
+
+            PdfPTable data = new PdfPTable(4);
+            data.WidthPercentage = 100;
+            data.AddCell(new PdfPCell(new Phrase(ano, fBold)) { BackgroundColor = cHeader, Colspan = 4, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
+            
+            string[] subH = { "MÉDIA", "MÓD NR", "SIT.", "TEC" };
+            foreach(var s in subH) data.AddCell(new PdfPCell(new Phrase(s, fBold)) { BackgroundColor = new BaseColor(230, 230, 230), Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
+
+            var grupos = notasAno.GroupBy(n => n.NomeDisciplina).OrderBy(g => GetPrioridadeTipo(g.First().TipoDisciplina));
+            foreach (var g in grupos)
+            {
+                var val = g.Where(v => v.Valor > 0).ToList();
+                double m = val.Any() ? val.Average(v => (double)v.Valor!) : 0;
+                string sit = g.All(v => v.Valor >= 10) ? "C" : "SC";
+                BaseColor bg = GetCorComponente(g.First().TipoDisciplina);
+
+                data.AddCell(new PdfPCell(new Phrase(m.ToString("N1"), fBase)) { BackgroundColor = bg, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
+                data.AddCell(new PdfPCell(new Phrase(val.Count.ToString(), fBase)) { BackgroundColor = bg, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
+                data.AddCell(new PdfPCell(new Phrase(sit, fBase)) { BackgroundColor = bg, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
+                data.AddCell(new PdfPCell(new Phrase("", fBase)) { BackgroundColor = bg, Padding = 2 });
+            }
+            cell.AddElement(data);
+            return cell;
+        }
+
+        private BaseColor GetCorComponente(string tipo)
+        {
+            if (tipo.ToLower().Contains("técnica")) return corTecnica;
+            if (tipo.ToLower().Contains("científica")) return corCientifica;
+            return corSociocultural;
+        }
+
+        private BaseColor GetCorFundoAno(string ano)
+        {
+            if (ano == "1º Ano") return corFundoAno1;
+            if (ano == "2º Ano") return corFundoAno2;
+            return corFundoAno3;
+        }
+
+        private int GetPrioridadeTipo(string tipo)
+        {
+            if (tipo.ToLower().Contains("sociocultural")) return 1;
+            if (tipo.ToLower().Contains("científica")) return 2;
+            if (tipo.ToLower().Contains("técnica")) return 3;
+            return 4;
+        }
+
+        private string CalcularMedia(List<NotaModulo> notas, string tipo)
+        {
+            var f = notas.Where(n => n.TipoDisciplina.ToLower().Contains(tipo) && n.Valor != null && n.Valor >= 0).ToList();
+            return f.Any() ? f.Average(n => (double)n.Valor!).ToString("N1") : "0,0";
+        }
+
+        private List<NotaModulo> ObterTodasNotas(int codAluno)
+        {
+            List<NotaModulo> lista = new List<NotaModulo>();
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 conn.Open();
                 string sql = @"
-                    SELECT d.Designacao as Disciplina, d.Tipo, m.Designacao as Modulo, m.Cod_Modulo, n.Valor
+                    SELECT n.Cod_NotaMod, n.Ano, d.Designacao as Disciplina, d.Tipo, m.Designacao as Modulo, m.Cod_Modulo, n.Valor
                     FROM NotaMod n
                     INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo
                     INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc
                     WHERE n.Cod_Aluno = @Aluno
                     ORDER BY d.Tipo, d.Designacao, m.Cod_Modulo";
-
                 using (MySqlCommand cmd = new MySqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@Aluno", codAluno);
@@ -153,28 +246,22 @@ namespace DCGest.Classes
                     {
                         while (r.Read())
                         {
-                            lista.Add(new InfoNotaPDF
-                            {
-                                NomeDisciplina = r["Disciplina"].ToString(),
-                                TipoDisciplina = r["Tipo"].ToString(),
-                                NomeModulo = r["Modulo"].ToString(),
-                                CodModulo = Convert.ToInt32(r["Cod_Modulo"]),
-                                Valor = r["Valor"] == DBNull.Value ? null : (int?)Convert.ToInt32(r["Valor"])
-                            });
+                            lista.Add(new NotaModulo(
+                                Convert.ToInt32(r["Cod_NotaMod"]),
+                                codAluno,
+                                Convert.ToInt32(r["Cod_Modulo"]),
+                                r["Valor"] == DBNull.Value ? null : (int?)Convert.ToInt32(r["Valor"]),
+                                null,
+                                r["Ano"].ToString(),
+                                r["Modulo"].ToString(),
+                                r["Disciplina"].ToString(),
+                                r["Tipo"].ToString()
+                            ));
                         }
                     }
                 }
             }
             return lista;
-        }
-
-        private class InfoNotaPDF
-        {
-            public string NomeDisciplina { get; set; }
-            public string TipoDisciplina { get; set; }
-            public string NomeModulo { get; set; }
-            public int CodModulo { get; set; }
-            public int? Valor { get; set; }
         }
     }
 }
