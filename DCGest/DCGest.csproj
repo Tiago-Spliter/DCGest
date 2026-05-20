@@ -15,7 +15,7 @@
   <ItemGroup>
     <PackageReference Include="MySql.Data" Version="9.6.0" />
     <Reference Include="itextsharp">
-      <HintPath>Libs\itextsharp.dll</HintPath>
+      <HintPath>Bibliotecas\itextsharp.dll</HintPath>
     </Reference>
   </ItemGroup>
 

@@ -14,6 +14,7 @@ namespace DCGest.Classes
 
         public string NomeModulo { get; set; } = string.Empty;
         public string NomeDisciplina { get; set; } = string.Empty;
+        public string TipoDisciplina { get; set; } = string.Empty;
 
 
         public NotaModulo() 
@@ -31,7 +32,7 @@ namespace DCGest.Classes
             Ano = ano;
         }
 
-        public NotaModulo(int codNotaMod, int codAluno, int codModulo, int? valor, DateTime? dataEfetua, string ano, string nomeModulo, string nomeDisciplina)
+        public NotaModulo(int codNotaMod, int codAluno, int codModulo, int? valor, DateTime? dataEfetua, string ano, string nomeModulo, string nomeDisciplina, string tipoDisciplina)
         {
             Cod_NotaMod = codNotaMod;
             Cod_Aluno = codAluno;
@@ -41,6 +42,7 @@ namespace DCGest.Classes
             Ano = ano;
             NomeModulo = nomeModulo;
             NomeDisciplina = nomeDisciplina;
+            TipoDisciplina = tipoDisciplina;
         }
     }
 }
