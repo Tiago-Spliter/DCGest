@@ -70,107 +70,34 @@ namespace DCGest
         {
             try
             {
-                using (MySqlConnection conexao = new MySqlConnection(caminho))
-                {
-                    conexao.Open();
+                // Turma
+                listaTurmas = Turma.ObterTodas();
+                cmb_Turma.ItemsSource = null;
+                cmb_Turma.ItemsSource = listaTurmas;
+                if (listaTurmas.Count > 0) cmb_Turma.SelectedIndex = 0;
 
-                    // Turma
-                    string sql_Turma = "SELECT Cod_Turma, Nome FROM turmas ORDER BY Nome";
-                    listaTurmas.Clear();
-                    using (MySqlCommand comando = new MySqlCommand(sql_Turma, conexao))
-                    {
-                        using (MySqlDataReader leitor = comando.ExecuteReader())
-                        {
-                            while (leitor.Read())
-                            {
-                                listaTurmas.Add(new Turma(
-                                    Convert.ToInt32(leitor["Cod_Turma"]),
-                                    leitor["Nome"].ToString()
-                                ));
-                            }
-                        }
-                    }
-                    cmb_Turma.ItemsSource = null;
-                    cmb_Turma.ItemsSource = listaTurmas;
-                    cmb_Turma.DisplayMemberPath = "Nome";
-                    cmb_Turma.SelectedValuePath = "Cod_Turma";
-                    if (listaTurmas.Count > 0) cmb_Turma.SelectedIndex = 0;
+                // Curso
+                listaCursos = Curso.ObterTodos();
+                cmb_Curso.ItemsSource = null;
+                cmb_Curso.ItemsSource = listaCursos;
+                if (listaCursos.Count > 0) cmb_Curso.SelectedIndex = 0;
 
-                    // Curso
-                    string sql_Curso = "SELECT Cod_Curso, Nome_Curso FROM cursos ORDER BY Nome_Curso";
-                    listaCursos.Clear();
-                    using (MySqlCommand comando = new MySqlCommand(sql_Curso, conexao))
-                    {
-                        using (MySqlDataReader leitor = comando.ExecuteReader())
-                        {
-                            while (leitor.Read())
-                            {
-                                listaCursos.Add(new Curso(
-                                    Convert.ToInt32(leitor["Cod_Curso"]), 
-                                    leitor["Nome_Curso"].ToString() 
-                                ));
-                            }
-                        }
-                    }
-                    
-                    // Populate both Aluno and DC courses
-                    cmb_Curso.ItemsSource = null;
-                    cmb_Curso.ItemsSource = listaCursos;
-                    cmb_Curso.DisplayMemberPath = "Nome_Curso";
-                    cmb_Curso.SelectedValuePath = "Cod_Curso";
-                    if (listaCursos.Count > 0) cmb_Curso.SelectedIndex = 0;
+                cmb_CursoDC.ItemsSource = null;
+                cmb_CursoDC.ItemsSource = listaCursos;
+                if (listaCursos.Count > 0) cmb_CursoDC.SelectedIndex = 0;
 
-                    cmb_CursoDC.ItemsSource = null;
-                    cmb_CursoDC.ItemsSource = listaCursos;
-                    cmb_CursoDC.DisplayMemberPath = "Nome_Curso";
-                    cmb_CursoDC.SelectedValuePath = "Cod_Curso";
-                    if (listaCursos.Count > 0) cmb_CursoDC.SelectedIndex = 0;
+                // Orientador
+                listaOrientadores = Orientador.ObterTodos();
+                listaOrientadores.Insert(0, new Orientador(0, "Sem Orientador"));
+                cmb_Orientador.ItemsSource = null;
+                cmb_Orientador.ItemsSource = listaOrientadores;
+                cmb_Orientador.SelectedIndex = 0;
 
-                    // Orientador
-                    string sql_Orientador = "SELECT Cod_Orientador, Nome_Orientador FROM orientador ORDER BY Nome_Orientador";
-                    listaOrientadores.Clear();
-                    listaOrientadores.Add(new Orientador(0, "Sem Orientador"));
-                    using (MySqlCommand comando = new MySqlCommand(sql_Orientador, conexao))
-                    {
-                        using (MySqlDataReader leitor = comando.ExecuteReader())
-                        {
-                            while (leitor.Read())
-                            {
-                                listaOrientadores.Add(new Orientador(
-                                    Convert.ToInt32(leitor["Cod_Orientador"]), 
-                                    leitor["Nome_Orientador"].ToString() 
-                                ));
-                            }
-                        }
-                    }
-                    cmb_Orientador.ItemsSource = null;
-                    cmb_Orientador.ItemsSource = listaOrientadores;
-                    cmb_Orientador.DisplayMemberPath = "Nome_Orientador";
-                    cmb_Orientador.SelectedValuePath = "Cod_Orientador";
-                    cmb_Orientador.SelectedIndex = 0;
-
-                    // Ano-Letivo
-                    string sql_Ano = "SELECT Cod_Letivo, Intervalo FROM anosletivos ORDER BY Intervalo";
-                    listaAnos.Clear();
-                    using (MySqlCommand comando = new MySqlCommand(sql_Ano, conexao))
-                    {
-                        using (MySqlDataReader leitor = comando.ExecuteReader())
-                        {
-                            while (leitor.Read())
-                            {
-                                listaAnos.Add(new AnoLetivo(
-                                    Convert.ToInt32(leitor["Cod_Letivo"]),
-                                    leitor["Intervalo"].ToString()
-                                ));
-                            }
-                        }
-                    }
-                    cmb_Ano.ItemsSource = null;
-                    cmb_Ano.ItemsSource = listaAnos;
-                    cmb_Ano.DisplayMemberPath = "Intervalo";
-                    cmb_Ano.SelectedValuePath = "Cod_Letivo";
-                    if (listaAnos.Count > 0) cmb_Ano.SelectedIndex = 0;
-                }
+                // Ano-Letivo
+                listaAnos = AnoLetivo.ObterTodos();
+                cmb_Ano.ItemsSource = null;
+                cmb_Ano.ItemsSource = listaAnos;
+                if (listaAnos.Count > 0) cmb_Ano.SelectedIndex = 0;
             }
             catch (Exception ex)
             {

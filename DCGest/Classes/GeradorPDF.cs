@@ -225,39 +225,46 @@ namespace DCGest.Classes
             return f.Any() ? f.Average(n => (double)n.Valor!).ToString("N1") : "0,0";
         }
 
-        private Aluno ObterInfoAluno(int cod)
+        private List<NotaModulo> ObterTodasNotas(int codAluno)
         {
+            List<NotaModulo> lista = new List<NotaModulo>();
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 conn.Open();
                 string sql = @"
-                    SELECT a.*, c.Nome_Curso, o.Nome_Orientador, t.Nome as Nome_Turma, al.Intervalo as Intervalo_Letivo
-                    FROM aluno a
-                    LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso
-                    LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador
-                    LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma
-                    LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo
-                    WHERE a.Cod_Aluno = @Cod";
-                
+                    SELECT n.Cod_NotaMod, n.Ano, d.Designacao as Disciplina, d.Tipo, m.Designacao as Modulo, m.Cod_Modulo, n.Valor
+                    FROM NotaMod n
+                    INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo
+                    INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc
+                    WHERE n.Cod_Aluno = @Aluno
+                    ORDER BY d.Tipo, d.Designacao, m.Cod_Modulo";
                 using (MySqlCommand cmd = new MySqlCommand(sql, conn))
                 {
-                    cmd.Parameters.AddWithValue("@Cod", cod);
+                    cmd.Parameters.AddWithValue("@Aluno", codAluno);
                     using (MySqlDataReader r = cmd.ExecuteReader())
                     {
-                        if (r.Read())
+                        while (r.Read())
                         {
-                            return new Aluno(
-                                Convert.ToInt32(r["Cod_Aluno"]),
-                                r["Nome_Aluno"].ToString(),
-                                Convert.ToInt32(r["Cod_Turma"]),
-                                Convert.ToInt32(r["Cod_Curso"]),
-                                r["Estado_Estagio"].ToString(),
-                                r["Cod_Ori"] == DBNull.Value ? null : (int?)Convert.ToInt32(r["Cod_Ori"]),
-                                Convert.ToInt32(r["Cod_Letivo"]),
-                                r["Nome_Curso"].ToString(),
-                                r["Nome_Orientador"]?.ToString() ?? "N/A",
-                                r["Nome_Turma"].ToString(),
-                                r["Intervalo_Letivo"].ToString()
+                            lista.Add(new NotaModulo(
+                                Convert.ToInt32(r["Cod_NotaMod"]),
+                                codAluno,
+                                Convert.ToInt32(r["Cod_Modulo"]),
+                                r["Valor"] == DBNull.Value ? null : (int?)Convert.ToInt32(r["Valor"]),
+                                null,
+                                r["Ano"].ToString(),
+                                r["Modulo"].ToString(),
+                                r["Disciplina"].ToString(),
+                                r["Tipo"].ToString()
+                            ));
+                        }
+                    }
+                }
+            }
+            return lista;
+        }
+    }
+}
+                r["Intervalo_Letivo"].ToString()
                             );
                         }
                     }

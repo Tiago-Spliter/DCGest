@@ -73,114 +73,37 @@ namespace DCGest
         {
             try
             {
-                using (MySqlConnection conexao = new MySqlConnection(caminho))
-                {
-                    conexao.Open();
+                // Ano-Letivo
+                listaAnos = AnoLetivo.ObterTodos();
+                listaAnos.Insert(0, new AnoLetivo(0, "Todos"));
+                cmb_anoletivo.ItemsSource = null;
+                cmb_anoletivo.ItemsSource = listaAnos;
+                cmb_anoletivo.SelectedIndex = 0;
 
-                    // Ano-Letivo
-                    string sql_Ano = "SELECT Cod_Letivo, Intervalo FROM anosletivos ORDER BY Intervalo";
-                    listaAnos.Clear();
-                    listaAnos.Add(new AnoLetivo(0, "Todos"));
+                // Curso
+                listaCursos = Curso.ObterTodos();
+                listaCursos.Insert(0, new Curso(0, "Todos"));
+                cmb_curso.ItemsSource = null;
+                cmb_curso.ItemsSource = listaCursos;
+                cmb_curso.SelectedIndex = 0;
 
-                    using (MySqlCommand comando = new MySqlCommand(sql_Ano, conexao))
-                    {
-                        using (MySqlDataReader leitor = comando.ExecuteReader())
-                        {
-                            while (leitor.Read())
-                            {
-                                listaAnos.Add(new AnoLetivo(
-                                    Convert.ToInt32(leitor["Cod_Letivo"]),
-                                    leitor["Intervalo"].ToString()
-                                ));
-                            }
-                        }
-                    }
+                // Turma
+                listaTurmas = Turma.ObterTodas();
+                listaTurmas.Insert(0, new Turma(0, "*"));
+                cmb_turma.ItemsSource = null;
+                cmb_turma.ItemsSource = listaTurmas;
+                cmb_turma.SelectedIndex = 0;
 
-                    cmb_anoletivo.ItemsSource = null;
-                    cmb_anoletivo.ItemsSource = listaAnos;
-                    cmb_anoletivo.DisplayMemberPath = "Intervalo";
-                    cmb_anoletivo.SelectedValuePath = "Cod_Letivo";
-                    cmb_anoletivo.SelectedIndex = 0;
-
-                    // Curso
-                    string sql_Curso = "SELECT Cod_Curso, Nome_Curso FROM cursos ORDER BY Nome_Curso";
-                    listaCursos.Clear();
-                    listaCursos.Add(new Curso(0, "Todos"));
-
-                    using (MySqlCommand comando = new MySqlCommand(sql_Curso, conexao))
-                    {
-                        using (MySqlDataReader leitor = comando.ExecuteReader())
-                        {
-                            while (leitor.Read())
-                            {
-                                listaCursos.Add(new Curso(
-                                    Convert.ToInt32(leitor["Cod_Curso"]), 
-                                    leitor["Nome_Curso"].ToString() 
-                                ));
-                            }
-                        }
-                    }
-
-                    cmb_curso.ItemsSource = null;
-                    cmb_curso.ItemsSource = listaCursos;
-                    cmb_curso.DisplayMemberPath = "Nome_Curso";
-                    cmb_curso.SelectedValuePath = "Cod_Curso";
-                    cmb_curso.SelectedIndex = 0;
-
-                    // Turma
-                    string sql_Turma = "SELECT Cod_Turma, Nome FROM turmas ORDER BY Nome";
-                    listaTurmas.Clear();
-                    listaTurmas.Add(new Turma(0, "*"));
-
-                    using (MySqlCommand comando = new MySqlCommand(sql_Turma, conexao))
-                    {
-                        using (MySqlDataReader leitor = comando.ExecuteReader())
-                        {
-                            while (leitor.Read())
-                            {
-                                listaTurmas.Add(new Turma(
-                                    Convert.ToInt32(leitor["Cod_Turma"]),
-                                    leitor["Nome"].ToString()
-                                ));
-                            }
-                        }
-                    }
-
-                    cmb_turma.ItemsSource = null;
-                    cmb_turma.ItemsSource = listaTurmas;
-                    cmb_turma.DisplayMemberPath = "Nome";
-                    cmb_turma.SelectedValuePath = "Cod_Turma";
-                    cmb_turma.SelectedIndex = 0;
-
-                    // Orientador
-                    string sql_Orientador = "SELECT Cod_Orientador, Nome_Orientador FROM orientador ORDER BY Nome_Orientador";
-                    listaOrientadores.Clear();
-                    listaOrientadores.Add(new Orientador(0, "Todos"));
-
-                    using (MySqlCommand comando = new MySqlCommand(sql_Orientador, conexao))
-                    {
-                        using (MySqlDataReader leitor = comando.ExecuteReader())
-                        {
-                            while (leitor.Read())
-                            {
-                                listaOrientadores.Add(new Orientador(
-                                    Convert.ToInt32(leitor["Cod_Orientador"]), 
-                                    leitor["Nome_Orientador"].ToString() 
-                                ));
-                            }
-                        }
-                    }
-
-                    cmb_orientador.ItemsSource = null;
-                    cmb_orientador.ItemsSource = listaOrientadores;
-                    cmb_orientador.DisplayMemberPath = "Nome_Orientador";
-                    cmb_orientador.SelectedValuePath = "Cod_Orientador";
-                    cmb_orientador.SelectedIndex = 0;
-                }
+                // Orientador
+                listaOrientadores = Orientador.ObterTodos();
+                listaOrientadores.Insert(0, new Orientador(0, "Todos"));
+                cmb_orientador.ItemsSource = null;
+                cmb_orientador.ItemsSource = listaOrientadores;
+                cmb_orientador.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao carregar combos: " + ex.Message);
+                MessageBox.Show("Erro ao carregar opções: " + ex.Message);
             }
         }
 

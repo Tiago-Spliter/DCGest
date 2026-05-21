@@ -122,5 +122,46 @@ namespace DCGest.Classes
                 }
             }
         }
+
+        public static Aluno? ObterPorId(int id)
+        {
+            using (MySqlConnection conn = new MySqlConnection(BD.CaminhoBD))
+            {
+                conn.Open();
+                string sql = @"
+                    SELECT a.*, c.Nome_Curso, o.Nome_Orientador, t.Nome as Nome_Turma, al.Intervalo as Intervalo_Letivo
+                    FROM aluno a
+                    LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso
+                    LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador
+                    LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma
+                    LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo
+                    WHERE a.Cod_Aluno = @Cod";
+                
+                using (MySqlCommand cmd = new MySqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Cod", id);
+                    using (MySqlDataReader r = cmd.ExecuteReader())
+                    {
+                        if (r.Read())
+                        {
+                            return new Aluno(
+                                Convert.ToInt32(r["Cod_Aluno"]),
+                                r["Nome_Aluno"].ToString() ?? "",
+                                Convert.ToInt32(r["Cod_Turma"]),
+                                Convert.ToInt32(r["Cod_Curso"]),
+                                r["Estado_Estagio"].ToString() ?? "",
+                                r["Cod_Ori"] == DBNull.Value ? null : (int?)Convert.ToInt32(r["Cod_Ori"]),
+                                Convert.ToInt32(r["Cod_Letivo"]),
+                                r["Nome_Curso"].ToString() ?? "",
+                                r["Nome_Orientador"]?.ToString() ?? "N/A",
+                                r["Nome_Turma"].ToString() ?? "",
+                                r["Intervalo_Letivo"].ToString() ?? ""
+                            );
+                        }
+                    }
+                }
+            }
+            return null;
+        }
     }
 }

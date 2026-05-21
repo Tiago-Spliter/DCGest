@@ -47,29 +47,15 @@ namespace DCGest
         {
             try
             {
-                using (MySqlConnection conexao = new MySqlConnection(caminho))
+                Aluno? a = Aluno.ObterPorId(codAluno);
+                if (a != null)
                 {
-                    conexao.Open();
-
-                    string sql_Nome = "SELECT Nome_Aluno FROM Aluno WHERE Cod_Aluno = @Cod";
-
-                    using (MySqlCommand comando = new MySqlCommand(sql_Nome, conexao))
-                    {
-                        comando.Parameters.AddWithValue("@Cod", codAluno);
-
-                        using (MySqlDataReader leitor = comando.ExecuteReader())
-                        {
-                            if (leitor.Read())
-                            {
-                                txtNomeAluno.Text = leitor["Nome_Aluno"].ToString();
-                            }
-                            else
-                            {
-                                MessageBox.Show("Aluno não encontrado!");
-                                this.Close();
-                            }
-                        }
-                    }
+                    txtNomeAluno.Text = a.Nome_Aluno;
+                }
+                else
+                {
+                    MessageBox.Show("Aluno não encontrado!");
+                    this.Close();
                 }
             }
             catch (Exception ex)

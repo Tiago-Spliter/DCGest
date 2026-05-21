@@ -28,64 +28,33 @@ namespace DCGest
         {
             try
             {
+                // 1. Carregar Combos usando métodos estáticos
+                listaTurmas = Turma.ObterTodas();
+                cmb_turma.ItemsSource = listaTurmas;
+                cmb_turma.DisplayMemberPath = "Nome";
+                cmb_turma.SelectedValuePath = "Cod_Turma";
+
+                listaCursos = Curso.ObterTodos();
+                cmb_curso.ItemsSource = listaCursos;
+                cmb_curso.DisplayMemberPath = "Nome_Curso";
+                cmb_curso.SelectedValuePath = "Cod_Curso";
+
+                listaOrientadores = Orientador.ObterTodos();
+                listaOrientadores.Insert(0, new Orientador(0, "Sem Orientador"));
+                cmb_orientador.ItemsSource = listaOrientadores;
+                cmb_orientador.DisplayMemberPath = "Nome_Orientador";
+                cmb_orientador.SelectedValuePath = "Cod_Orientador";
+
+                listaAnos = AnoLetivo.ObterTodos();
+                cmb_anoletivo.ItemsSource = listaAnos;
+                cmb_anoletivo.DisplayMemberPath = "Intervalo";
+                cmb_anoletivo.SelectedValuePath = "Cod_Letivo";
+
                 using (MySqlConnection conn = new MySqlConnection(caminho))
                 {
                     conn.Open();
 
-                    // 1. Carregar Turmas
-                    string sql_Turma = "SELECT Cod_Turma, Nome FROM turmas ORDER BY Nome";
-                    listaTurmas.Clear();
-                    using (MySqlCommand cmd = new MySqlCommand(sql_Turma, conn))
-                    using (MySqlDataReader r = cmd.ExecuteReader())
-                    {
-                        while (r.Read()) listaTurmas.Add(new Turma(Convert.ToInt32(r["Cod_Turma"]), r["Nome"].ToString()));
-                    }
-                    cmb_turma.ItemsSource = null;
-                    cmb_turma.ItemsSource = listaTurmas;
-                    cmb_turma.DisplayMemberPath = "Nome";
-                    cmb_turma.SelectedValuePath = "Cod_Turma";
-
-                    // 2. Carregar Cursos
-                    string sql_Curso = "SELECT Cod_Curso, Nome_Curso FROM cursos ORDER BY Nome_Curso";
-                    listaCursos.Clear();
-                    using (MySqlCommand cmd = new MySqlCommand(sql_Curso, conn))
-                    using (MySqlDataReader r = cmd.ExecuteReader())
-                    {
-                        while (r.Read()) listaCursos.Add(new Curso(Convert.ToInt32(r["Cod_Curso"]), r["Nome_Curso"].ToString()));
-                    }
-                    cmb_curso.ItemsSource = null;
-                    cmb_curso.ItemsSource = listaCursos;
-                    cmb_curso.DisplayMemberPath = "Nome_Curso";
-                    cmb_curso.SelectedValuePath = "Cod_Curso";
-
-                    // 3. Carregar Orientadores
-                    string sql_Ori = "SELECT Cod_Orientador, Nome_Orientador FROM orientador ORDER BY Nome_Orientador";
-                    listaOrientadores.Clear();
-                    listaOrientadores.Add(new Orientador(0, "Sem Orientador"));
-                    using (MySqlCommand cmd = new MySqlCommand(sql_Ori, conn))
-                    using (MySqlDataReader r = cmd.ExecuteReader())
-                    {
-                        while (r.Read()) listaOrientadores.Add(new Orientador(Convert.ToInt32(r["Cod_Orientador"]), r["Nome_Orientador"].ToString()));
-                    }
-                    cmb_orientador.ItemsSource = null;
-                    cmb_orientador.ItemsSource = listaOrientadores;
-                    cmb_orientador.DisplayMemberPath = "Nome_Orientador";
-                    cmb_orientador.SelectedValuePath = "Cod_Orientador";
-
-                    // 4. Carregar Anos Letivos
-                    string sql_Ano = "SELECT Cod_Letivo, Intervalo FROM anosletivos ORDER BY Intervalo";
-                    listaAnos.Clear();
-                    using (MySqlCommand cmd = new MySqlCommand(sql_Ano, conn))
-                    using (MySqlDataReader r = cmd.ExecuteReader())
-                    {
-                        while (r.Read()) listaAnos.Add(new AnoLetivo(Convert.ToInt32(r["Cod_Letivo"]), r["Intervalo"].ToString()));
-                    }
-                    cmb_anoletivo.ItemsSource = null;
-                    cmb_anoletivo.ItemsSource = listaAnos;
-                    cmb_anoletivo.DisplayMemberPath = "Intervalo";
-                    cmb_anoletivo.SelectedValuePath = "Cod_Letivo";
-
-                    // 5. Buscar dados do aluno para preencher os campos
+                    // 2. Buscar dados do aluno para preencher os campos
                     string sql_Aluno = "SELECT * FROM aluno WHERE Cod_Aluno = @id";
                     using (MySqlCommand cmd = new MySqlCommand(sql_Aluno, conn))
                     {
