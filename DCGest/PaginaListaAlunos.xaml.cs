@@ -78,7 +78,7 @@ namespace DCGest
                     conexao.Open();
 
                     // Ano-Letivo
-                    string sql_Ano = "SELECT DISTINCT Ano_Letivo FROM aluno ORDER BY Ano_Letivo";
+                    string sql_Ano = "SELECT Intervalo FROM Apoio_AnosLetivos ORDER BY Intervalo";
                     listaAnos.Clear();
                     listaAnos.Add("Todos");
 
@@ -86,7 +86,7 @@ namespace DCGest
                     {
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
-                            while (leitor.Read()) listaAnos.Add(leitor["Ano_Letivo"].ToString());
+                            while (leitor.Read()) listaAnos.Add(leitor["Intervalo"].ToString());
                         }
                     }
 
@@ -120,7 +120,7 @@ namespace DCGest
                     cmb_curso.SelectedIndex = 0;
 
                     // Turma
-                    string sql_Turma = "SELECT DISTINCT Turma FROM aluno ORDER BY Turma";
+                    string sql_Turma = "SELECT Nome FROM Apoio_Turmas ORDER BY Nome";
                     listaTurmas.Clear();
                     listaTurmas.Add("*");
 
@@ -128,7 +128,7 @@ namespace DCGest
                     {
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
-                            while (leitor.Read()) listaTurmas.Add(leitor["Turma"].ToString());
+                            while (leitor.Read()) listaTurmas.Add(leitor["Nome"].ToString());
                         }
                     }
 
