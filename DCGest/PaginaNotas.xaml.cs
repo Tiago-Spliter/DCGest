@@ -38,6 +38,10 @@ namespace DCGest
         List<NotaModulo> listaNotas = new List<NotaModulo>();
         List<MediaDisciplina> listaMedias = new List<MediaDisciplina>();
 
+        // Objetos para guardar as notas especiais (FCT/PAP)
+        NotaModulo? notaFCT = null;
+        NotaModulo? notaPAP = null;
+
 
         private void CarregarNomeAluno()
         {
@@ -79,38 +83,67 @@ namespace DCGest
             try
             {
                 listaNotas.Clear();
+                // Limpar campos visuais das notas finais antes de carregar
+                txt_notaFCT.Text = "0";
+                txt_notaPAP.Text = "0";
+                notaFCT = null;
+                notaPAP = null;
 
                 using (MySqlConnection conexao = new MySqlConnection(caminho))
                 {
                     conexao.Open();
 
-                    string sql = @"SELECT n.Cod_NotaMod, m.Designacao AS Modulo, d.Designacao AS Disciplina, d.Tipo, n.Valor, n.Data_Efetua 
+                    // Query que busca tudo do aluno, incluindo as de tipo 'final'
+                    string sql = @"SELECT n.Cod_NotaMod, n.Ano, m.Designacao AS Modulo, d.Designacao AS Disciplina, d.Tipo, n.Valor, n.Data_Efetua 
                                    FROM NotaMod n 
                                    INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo 
                                    INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc 
-                                   WHERE n.Ano = @Ano AND n.Cod_Aluno = @Aluno
+                                   WHERE n.Cod_Aluno = @Aluno
                                    ORDER BY d.Tipo, d.Designacao, m.Cod_Modulo";
 
                     using (MySqlCommand comando = new MySqlCommand(sql, conexao))
                     {
-                        comando.Parameters.AddWithValue("@Ano", ano);
                         comando.Parameters.AddWithValue("@Aluno", codAluno);
 
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
                             while (leitor.Read())
                             {
-                                listaNotas.Add(new NotaModulo(
+                                string tipo = leitor["Tipo"].ToString();
+                                string discNome = leitor["Disciplina"].ToString();
+                                string anoNota = leitor["Ano"].ToString();
+
+                                NotaModulo n = new NotaModulo(
                                     Convert.ToInt32(leitor["Cod_NotaMod"]),
                                     codAluno,
                                     0,
                                     leitor["Valor"] == DBNull.Value ? null : (int?)Convert.ToInt32(leitor["Valor"]),
                                     leitor["Data_Efetua"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(leitor["Data_Efetua"]),
-                                    ano,
+                                    anoNota,
                                     leitor["Modulo"].ToString(),
-                                    leitor["Disciplina"].ToString(),
-                                    leitor["Tipo"].ToString()
-                                ));
+                                    discNome,
+                                    tipo
+                                );
+
+                                // Se for do tipo 'final', guardamos nos objetos especiais e não na lista da grid
+                                if (tipo.ToLower() == "final")
+                                {
+                                    if (discNome.ToUpper().Contains("FCT"))
+                                    {
+                                        notaFCT = n;
+                                        txt_notaFCT.Text = n.Valor?.ToString() ?? "0";
+                                    }
+                                    else if (discNome.ToUpper().Contains("PAP"))
+                                    {
+                                        notaPAP = n;
+                                        txt_notaPAP.Text = n.Valor?.ToString() ?? "0";
+                                    }
+                                }
+                                // Se for uma disciplina normal E do ano selecionado, vai para a grid
+                                else if (anoNota == ano)
+                                {
+                                    listaNotas.Add(n);
+                                }
                             }
                         }
                     }
@@ -169,14 +202,12 @@ namespace DCGest
 
                     foreach (NotaModulo n in notasDaDisciplina)
                     {
-                        // Se tem nota lançada (incluindo 0)
                         if (n.Valor != null && n.Valor >= 0)
                         {
                             somaNotas = somaNotas + (double)n.Valor;
                             contadorModulosComNota = contadorModulosComNota + 1;
                         }
 
-                        // Situação: Aprovado (C) se >= 10, senão SC
                         if (n.Valor == null || n.Valor < 10)
                         {
                             reprovouAlgumModulo = true;
@@ -230,8 +261,10 @@ namespace DCGest
                 txt_mediaTecnica.Text = contTec > 0 ? (somaTec / contTec).ToString("N2") : "0,00";
 
                 // 5. Média Final do Aluno
-                double fct = 0, pap = 0;
+                double fct = 0;
                 if (txt_notaFCT.Text != "") fct = Convert.ToDouble(txt_notaFCT.Text);
+
+                double pap = 0;
                 if (txt_notaPAP.Text != "") pap = Convert.ToDouble(txt_notaPAP.Text);
 
                 double mediaDasNotas = contGeral > 0 ? (somaGeral / contGeral) : 0;
@@ -242,17 +275,32 @@ namespace DCGest
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro cálculo: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("Erro cálculo: " + ex.Message);
             }
         }
 
         private void Btn_Click_Editar(object sender, RoutedEventArgs e)
         {
-            var res = MessageBox.Show("Deseja guardar todas as alterações feitas nas notas deste aluno?", "Confirmar Alterações", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var res = MessageBox.Show("Deseja guardar todas as alterações feitas nas notas deste aluno (incluindo FCT/PAP)?", "Confirmar Alterações", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (res == MessageBoxResult.No) return;
 
             try
             {
+                // Lista temporária para agrupar tudo o que deve ser salvo
+                List<NotaModulo> notasParaSalvar = new List<NotaModulo>(listaNotas);
+                
+                // Se temos FCT/PAP, atualizar os valores a partir das caixas de texto e adicionar à lista
+                if (notaFCT != null)
+                {
+                    notaFCT.Valor = string.IsNullOrEmpty(txt_notaFCT.Text) ? null : (int?)Convert.ToInt32(txt_notaFCT.Text);
+                    notasParaSalvar.Add(notaFCT);
+                }
+                if (notaPAP != null)
+                {
+                    notaPAP.Valor = string.IsNullOrEmpty(txt_notaPAP.Text) ? null : (int?)Convert.ToInt32(txt_notaPAP.Text);
+                    notasParaSalvar.Add(notaPAP);
+                }
+
                 using (MySqlConnection conexao = new MySqlConnection(caminho))
                 {
                     conexao.Open();
@@ -261,8 +309,9 @@ namespace DCGest
                     {
                         try
                         {
-                            foreach (NotaModulo nota in listaNotas)
+                            foreach (NotaModulo nota in notasParaSalvar)
                             {
+                                // Atualizar data apenas se a nota não for nula
                                 if (nota.Valor != null)
                                 {
                                     nota.Data_Efetua = DateTime.Now;
@@ -276,25 +325,8 @@ namespace DCGest
 
                                 using (MySqlCommand comando = new MySqlCommand(sql, conexao, transacao))
                                 {
-
-                                    if (nota.Valor == null)
-                                    {
-                                        comando.Parameters.AddWithValue("@Valor", DBNull.Value);
-                                    }
-                                    else
-                                    {
-                                        comando.Parameters.AddWithValue("@Valor", nota.Valor);
-                                    }
-
-                                    if (nota.Data_Efetua == null)
-                                    {
-                                        comando.Parameters.AddWithValue("@Data", DBNull.Value);
-                                    }
-                                    else
-                                    {
-                                        comando.Parameters.AddWithValue("@Data", nota.Data_Efetua);
-                                    }
-
+                                    comando.Parameters.AddWithValue("@Valor", (object?)nota.Valor ?? DBNull.Value);
+                                    comando.Parameters.AddWithValue("@Data", (object?)nota.Data_Efetua ?? DBNull.Value);
                                     comando.Parameters.AddWithValue("@Id", nota.Cod_NotaMod);
 
                                     comando.ExecuteNonQuery();
@@ -303,8 +335,8 @@ namespace DCGest
 
                             transacao.Commit();
                             dg_alunos.Items.Refresh();
-                            CalcularResumos(); // Recalcula após guardar
-                            MessageBox.Show("Todas as notas foram guardadas com sucesso!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+                            CalcularResumos();
+                            MessageBox.Show("Todas as notas (Módulos e FCT/PAP) foram guardadas com sucesso!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                         catch (Exception ex)
                         {
