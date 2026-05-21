@@ -123,7 +123,7 @@ namespace DCGest.Classes
             }
         }
 
-        public static Aluno? ObterPorId(int id)
+        public static Aluno ObterPorId(int id)
         {
             using (MySqlConnection conn = new MySqlConnection(BD.CaminhoBD))
             {
@@ -144,18 +144,30 @@ namespace DCGest.Classes
                     {
                         if (r.Read())
                         {
+                            int? orientadorId = null;
+                            if (r["Cod_Ori"] != DBNull.Value)
+                            {
+                                orientadorId = Convert.ToInt32(r["Cod_Ori"]);
+                            }
+
+                            string nomeOri = "N/A";
+                            if (r["Nome_Orientador"] != DBNull.Value)
+                            {
+                                nomeOri = r["Nome_Orientador"].ToString();
+                            }
+
                             return new Aluno(
                                 Convert.ToInt32(r["Cod_Aluno"]),
-                                r["Nome_Aluno"].ToString() ?? "",
+                                r["Nome_Aluno"].ToString(),
                                 Convert.ToInt32(r["Cod_Turma"]),
                                 Convert.ToInt32(r["Cod_Curso"]),
-                                r["Estado_Estagio"].ToString() ?? "",
-                                r["Cod_Ori"] == DBNull.Value ? null : (int?)Convert.ToInt32(r["Cod_Ori"]),
+                                r["Estado_Estagio"].ToString(),
+                                orientadorId,
                                 Convert.ToInt32(r["Cod_Letivo"]),
-                                r["Nome_Curso"].ToString() ?? "",
-                                r["Nome_Orientador"]?.ToString() ?? "N/A",
-                                r["Nome_Turma"].ToString() ?? "",
-                                r["Intervalo_Letivo"].ToString() ?? ""
+                                r["Nome_Curso"].ToString(),
+                                nomeOri,
+                                r["Nome_Turma"].ToString(),
+                                r["Intervalo_Letivo"].ToString()
                             );
                         }
                     }

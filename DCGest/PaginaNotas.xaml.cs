@@ -363,11 +363,11 @@ namespace DCGest
 
         private void AtualizarBotoes(Button botaoSelecionado)
         {
-            var CorAtivo = (Brush)new BrushConverter().ConvertFrom("#293472");
-            var CorInativo = (Brush)new BrushConverter().ConvertFrom("#EFE6D8");
+            Brush CorAtivo = (Brush)new BrushConverter().ConvertFrom("#293472");
+            Brush CorInativo = (Brush)new BrushConverter().ConvertFrom("#EFE6D8");
 
-            var TextoAtivo = Brushes.White;
-            var TextoInativo = (Brush)new BrushConverter().ConvertFrom("#293472");
+            Brush TextoAtivo = Brushes.White;
+            Brush TextoInativo = (Brush)new BrushConverter().ConvertFrom("#293472");
 
             btn_ano1.Background = CorInativo;
             btn_ano1.Foreground = TextoInativo;

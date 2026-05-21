@@ -132,11 +132,11 @@ namespace DCGest
                     int? codOri = null;
                     if (cmb_Orientador.SelectedItem != null)
                     {
-                        var orientadorSelecionado = (Orientador)cmb_Orientador.SelectedItem;
+                        Orientador orientadorSelecionado = (Orientador)cmb_Orientador.SelectedItem;
                         if (orientadorSelecionado.Cod_Orientador != 0) codOri = orientadorSelecionado.Cod_Orientador;
-                    }
+                        }
 
-                    Aluno novoAluno = new Aluno(
+                        Aluno novoAluno = new Aluno(
                         Convert.ToInt32(txtCodAluno.Text),
                         txtNomeAluno.Text.Trim(),
                         Convert.ToInt32(cmb_Turma.SelectedValue),
@@ -144,52 +144,51 @@ namespace DCGest
                         "Não Pronto",
                         codOri,
                         Convert.ToInt32(cmb_Ano.SelectedValue)
-                    );
+                        );
 
-                    var res = MessageBox.Show("Deseja confirmar a gravação deste Aluno?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                    if (res == MessageBoxResult.Yes)
-                    {
+                        MessageBoxResult resAluno = MessageBox.Show("Deseja confirmar a gravação deste Aluno?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                        if (resAluno == MessageBoxResult.Yes)
+                        {
                         novoAluno.InserirNaBD(caminho);
                         MessageBox.Show("Aluno guardado com sucesso!");
                         LimparCampos();
-                    }
-                }
-                else if (cmb_tipo.SelectedIndex == 1) // Orientador
-                {
-                    if (string.IsNullOrEmpty(txtNomeOri.Text))
-                    {
+                        }
+                        }
+                        else if (cmb_tipo.SelectedIndex == 1) // Orientador
+                        {
+                        if (string.IsNullOrEmpty(txtNomeOri.Text))
+                        {
                         MessageBox.Show("Preencha o nome do Orientador!");
                         return;
-                    }
+                        }
 
-                    if (!Regex.IsMatch(txtNomeOri.Text, @"^[\p{L}\s]+$"))
-                    {
+                        if (!Regex.IsMatch(txtNomeOri.Text, @"^[\p{L}\s]+$"))
+                        {
                         MessageBox.Show("O nome do orientador deve conter apenas letras!");
                         return;
-                    }
+                        }
 
-                    Orientador novoOri = new Orientador(0, txtNomeOri.Text.Trim());
+                        Orientador novoOri = new Orientador(0, txtNomeOri.Text.Trim());
 
-                    var res = MessageBox.Show("Deseja confirmar a gravação deste Orientador?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                    if (res == MessageBoxResult.Yes)
-                    {
+                        MessageBoxResult resOri = MessageBox.Show("Deseja confirmar a gravação deste Orientador?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                        if (resOri == MessageBoxResult.Yes)
+                        {
                         novoOri.InserirNaBD(caminho);
                         MessageBox.Show("Orientador guardado com sucesso!");
                         CarregarCombos();
                         LimparCampos();
-                    }
-                }
-                else if (cmb_tipo.SelectedIndex == 2) // Diretor de Curso
-                {
-                    if (string.IsNullOrEmpty(txtNomeDC.Text) || string.IsNullOrEmpty(txtUserDC.Text) || string.IsNullOrEmpty(txtPassDC.Password) || cmb_CursoDC.SelectedItem == null)
-                    {
+                        }
+                        }
+                        else if (cmb_tipo.SelectedIndex == 2) // Diretor de Curso
+                        {
+                        if (string.IsNullOrEmpty(txtNomeDC.Text) || string.IsNullOrEmpty(txtUserDC.Text) || string.IsNullOrEmpty(txtPassDC.Password) || cmb_CursoDC.SelectedItem == null)
+                        {
                         MessageBox.Show("Preencha todos os campos obrigatórios do Diretor!");
                         return;
-                    }
+                        }
 
-                    var res = MessageBox.Show("Deseja confirmar a gravação deste Diretor de Curso?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                    if (res == MessageBoxResult.Yes)
-                    {
+                        MessageBoxResult resDC = MessageBox.Show("Deseja confirmar a gravação deste Diretor de Curso?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                        if (resDC == MessageBoxResult.Yes)                    {
                         InserirDiretorCurso();
                     }
                 }

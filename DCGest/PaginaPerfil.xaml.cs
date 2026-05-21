@@ -34,7 +34,15 @@ namespace DCGest
                         using (MySqlCommand cmd = new MySqlCommand(sql, conn))
                         {
                             cmd.Parameters.AddWithValue("@id", Sessao.UtilizadorLogado.Cod_Curso);
-                            txt_curso.Text = cmd.ExecuteScalar()?.ToString() ?? "N/A";
+                            object resultado = cmd.ExecuteScalar();
+                            if (resultado != null && resultado != DBNull.Value)
+                            {
+                                txt_curso.Text = resultado.ToString();
+                            }
+                            else
+                            {
+                                txt_curso.Text = "N/A";
+                            }
                         }
                     }
                 }
@@ -64,7 +72,7 @@ namespace DCGest
                     return;
                 }
 
-                var res = MessageBox.Show("Tem a certeza que deseja alterar a sua palavra-passe?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                MessageBoxResult res = MessageBox.Show("Tem a certeza que deseja alterar a sua palavra-passe?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (res == MessageBoxResult.No) return;
 
                 using (MySqlConnection conn = new MySqlConnection(caminho))
