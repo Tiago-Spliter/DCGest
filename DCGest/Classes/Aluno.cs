@@ -8,15 +8,17 @@ namespace DCGest.Classes
     {
         public int Cod_Aluno { get; set; }
         public string Nome_Aluno { get; set; } = string.Empty;
-        public string Turma { get; set; } = string.Empty;
+        public int Cod_Turma { get; set; }
         public int Cod_Curso { get; set; }
         public string Estado_Estagio { get; set; } = string.Empty;
         public int? Cod_Ori { get; set; }
-        public string Ano_Letivo { get; set; } = string.Empty;
+        public int Cod_Letivo { get; set; }
 
 
         public string Nome_Curso { get; set; } = string.Empty;
         public string Nome_Orientador { get; set; } = string.Empty;
+        public string Nome_Turma { get; set; } = string.Empty;
+        public string Intervalo_Letivo { get; set; } = string.Empty;
 
 
         public Aluno() 
@@ -24,28 +26,32 @@ namespace DCGest.Classes
         
         }
 
-        public Aluno(int codAluno, string nomeAluno, string turma, int codCurso, string estadoEstagio, int? codOri, string anoLetivo)
+        // Construtor Base (BD)
+        public Aluno(int codAluno, string nomeAluno, int codTurma, int codCurso, string estadoEstagio, int? codOri, int codLetivo)
         {
             Cod_Aluno = codAluno;
             Nome_Aluno = nomeAluno;
-            Turma = turma;
+            Cod_Turma = codTurma;
             Cod_Curso = codCurso;
             Estado_Estagio = estadoEstagio;
             Cod_Ori = codOri;
-            Ano_Letivo = anoLetivo;
+            Cod_Letivo = codLetivo;
         }
 
-        public Aluno(int codAluno, string nomeAluno, string turma, int codCurso, string estadoEstagio, int? codOri, string anoLetivo, string nomeCurso, string nomeOrientador)
+        // Construtor Completo (Display)
+        public Aluno(int codAluno, string nomeAluno, int codTurma, int codCurso, string estadoEstagio, int? codOri, int codLetivo, string nomeCurso, string nomeOrientador, string nomeTurma, string intervaloLetivo)
         {
             Cod_Aluno = codAluno;
             Nome_Aluno = nomeAluno;
-            Turma = turma;
+            Cod_Turma = codTurma;
             Cod_Curso = codCurso;
             Estado_Estagio = estadoEstagio;
             Cod_Ori = codOri;
-            Ano_Letivo = anoLetivo;
+            Cod_Letivo = codLetivo;
             Nome_Curso = nomeCurso;
             Nome_Orientador = nomeOrientador;
+            Nome_Turma = nomeTurma;
+            Intervalo_Letivo = intervaloLetivo;
         }
 
         public override void InserirNaBD(string connectionString)
@@ -59,18 +65,18 @@ namespace DCGest.Classes
                     try
                     {
                         // 1. Inserir o Aluno
-                        string sqlAluno = @"INSERT INTO aluno (Cod_Aluno, Nome_Aluno, Turma, Cod_Curso, Estado_Estagio, Cod_Ori, Ano_Letivo) 
-                                            VALUES (@Cod, @Nome, @Turma, @Curso, @Estado, @Ori, @Ano)";
+                        string sqlAluno = @"INSERT INTO aluno (Cod_Aluno, Nome_Aluno, Cod_Turma, Cod_Curso, Estado_Estagio, Cod_Ori, Cod_Letivo) 
+                                            VALUES (@Cod, @Nome, @Turma, @Curso, @Estado, @Ori, @Letivo)";
 
                         using (MySqlCommand cmdAluno = new MySqlCommand(sqlAluno, conexao, transacao))
                         {
                             cmdAluno.Parameters.AddWithValue("@Cod", Cod_Aluno);
                             cmdAluno.Parameters.AddWithValue("@Nome", Nome_Aluno);
-                            cmdAluno.Parameters.AddWithValue("@Turma", Turma);
+                            cmdAluno.Parameters.AddWithValue("@Turma", Cod_Turma);
                             cmdAluno.Parameters.AddWithValue("@Curso", Cod_Curso);
                             cmdAluno.Parameters.AddWithValue("@Estado", Estado_Estagio);
                             cmdAluno.Parameters.AddWithValue("@Ori", (object)Cod_Ori ?? DBNull.Value);
-                            cmdAluno.Parameters.AddWithValue("@Ano", Ano_Letivo);
+                            cmdAluno.Parameters.AddWithValue("@Letivo", Cod_Letivo);
                             cmdAluno.ExecuteNonQuery();
                         }
 

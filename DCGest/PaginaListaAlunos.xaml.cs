@@ -35,9 +35,9 @@ namespace DCGest
 
 
         // Listas
-        List<string> listaAnos = new List<string>();
+        List<AnoLetivo> listaAnos = new List<AnoLetivo>();
         List<Curso> listaCursos = new List<Curso>();
-        List<string> listaTurmas = new List<string>();
+        List<Turma> listaTurmas = new List<Turma>();
         List<Orientador> listaOrientadores = new List<Orientador>();
 
         List<Aluno> listaAlunos = new List<Aluno>();
@@ -78,20 +78,28 @@ namespace DCGest
                     conexao.Open();
 
                     // Ano-Letivo
-                    string sql_Ano = "SELECT Intervalo FROM Apoio_AnosLetivos ORDER BY Intervalo";
+                    string sql_Ano = "SELECT Cod_Letivo, Intervalo FROM anosletivos ORDER BY Intervalo";
                     listaAnos.Clear();
-                    listaAnos.Add("Todos");
+                    listaAnos.Add(new AnoLetivo(0, "Todos"));
 
                     using (MySqlCommand comando = new MySqlCommand(sql_Ano, conexao))
                     {
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
-                            while (leitor.Read()) listaAnos.Add(leitor["Intervalo"].ToString());
+                            while (leitor.Read())
+                            {
+                                listaAnos.Add(new AnoLetivo(
+                                    Convert.ToInt32(leitor["Cod_Letivo"]),
+                                    leitor["Intervalo"].ToString()
+                                ));
+                            }
                         }
                     }
 
                     cmb_anoletivo.ItemsSource = null;
                     cmb_anoletivo.ItemsSource = listaAnos;
+                    cmb_anoletivo.DisplayMemberPath = "Intervalo";
+                    cmb_anoletivo.SelectedValuePath = "Cod_Letivo";
                     cmb_anoletivo.SelectedIndex = 0;
 
                     // Curso
@@ -120,20 +128,28 @@ namespace DCGest
                     cmb_curso.SelectedIndex = 0;
 
                     // Turma
-                    string sql_Turma = "SELECT Nome FROM Apoio_Turmas ORDER BY Nome";
+                    string sql_Turma = "SELECT Cod_Turma, Nome FROM turmas ORDER BY Nome";
                     listaTurmas.Clear();
-                    listaTurmas.Add("*");
+                    listaTurmas.Add(new Turma(0, "*"));
 
                     using (MySqlCommand comando = new MySqlCommand(sql_Turma, conexao))
                     {
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
-                            while (leitor.Read()) listaTurmas.Add(leitor["Nome"].ToString());
+                            while (leitor.Read())
+                            {
+                                listaTurmas.Add(new Turma(
+                                    Convert.ToInt32(leitor["Cod_Turma"]),
+                                    leitor["Nome"].ToString()
+                                ));
+                            }
                         }
                     }
 
                     cmb_turma.ItemsSource = null;
                     cmb_turma.ItemsSource = listaTurmas;
+                    cmb_turma.DisplayMemberPath = "Nome";
+                    cmb_turma.SelectedValuePath = "Cod_Turma";
                     cmb_turma.SelectedIndex = 0;
 
                     // Orientador
@@ -177,30 +193,32 @@ namespace DCGest
                     conexao.Open();
 
                     StringBuilder sql_Alunos = new StringBuilder(@"
-                        SELECT a.*, c.Nome_Curso, o.Nome_Orientador 
+                        SELECT a.*, c.Nome_Curso, o.Nome_Orientador, t.Nome as Nome_Turma, al.Intervalo as Intervalo_Letivo
                         FROM aluno a
                         LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso
                         LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador
-                    ");
+                        LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma
+                        LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo
+                        WHERE 1=1");
 
-                    if (cmb_anoletivo.SelectedValue != null && cmb_anoletivo.SelectedValue.ToString() != "Todos")
+                    if (cmb_anoletivo.SelectedValue != null && (int)cmb_anoletivo.SelectedValue != 0)
                     {
-                        sql_Alunos.Append(" AND a.Ano_Letivo = @ano");
+                        sql_Alunos.Append(" AND a.Cod_Letivo = @letivo");
                     }
 
-                    if (cmb_curso.SelectedValue != null && cmb_curso.SelectedValue.ToString() != "0")
+                    if (cmb_curso.SelectedValue != null && (int)cmb_curso.SelectedValue != 0)
                     {
                         sql_Alunos.Append(" AND a.Cod_Curso = @curso");
                     }
 
                     using (MySqlCommand comando = new MySqlCommand(sql_Alunos.ToString(), conexao))
                     {
-                        if (cmb_anoletivo.SelectedValue != null && cmb_anoletivo.SelectedValue.ToString() != "Todos")
+                        if (cmb_anoletivo.SelectedValue != null && (int)cmb_anoletivo.SelectedValue != 0)
                         {
-                            comando.Parameters.AddWithValue("@ano", cmb_anoletivo.SelectedValue);
+                            comando.Parameters.AddWithValue("@letivo", cmb_anoletivo.SelectedValue);
                         }
 
-                        if (cmb_curso.SelectedValue != null && cmb_curso.SelectedValue.ToString() != "0")
+                        if (cmb_curso.SelectedValue != null && (int)cmb_curso.SelectedValue != 0)
                         {
                             comando.Parameters.AddWithValue("@curso", cmb_curso.SelectedValue);
                         }
@@ -216,13 +234,15 @@ namespace DCGest
                                 listaAlunos.Add(new Aluno(
                                     Convert.ToInt32(leitor["Cod_Aluno"]),
                                     leitor["Nome_Aluno"].ToString(),
-                                    leitor["Turma"].ToString(),
+                                    Convert.ToInt32(leitor["Cod_Turma"]),
                                     Convert.ToInt32(leitor["Cod_Curso"]),
                                     leitor["Estado_Estagio"].ToString(),
                                     codOri,
-                                    leitor["Ano_Letivo"].ToString(),
-                                    leitor["Nome_Curso"].ToString() ,
-                                    leitor["Nome_Orientador"].ToString()
+                                    Convert.ToInt32(leitor["Cod_Letivo"]),
+                                    leitor["Nome_Curso"].ToString(),
+                                    leitor["Nome_Orientador"]?.ToString() ?? "N/A",
+                                    leitor["Nome_Turma"].ToString(),
+                                    leitor["Intervalo_Letivo"].ToString()
                                 ));
                             }
                         }
@@ -247,10 +267,12 @@ namespace DCGest
                     conexao.Open();
 
                     StringBuilder Filtro = new StringBuilder(@"
-                        SELECT a.*, c.Nome_Curso, o.Nome_Orientador 
+                        SELECT a.*, c.Nome_Curso, o.Nome_Orientador, t.Nome as Nome_Turma, al.Intervalo as Intervalo_Letivo
                         FROM aluno a
                         LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso
                         LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador
+                        LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma
+                        LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo
                         WHERE 1=1");
 
                     if (txt_codigo.Text != string.Empty)
@@ -263,12 +285,12 @@ namespace DCGest
                         Filtro.Append(" AND a.Nome_Aluno LIKE @nome");
                     }
 
-                    if (cmb_turma.SelectedValue != null && cmb_turma.SelectedValue.ToString() != "*")
+                    if (cmb_turma.SelectedValue != null && (int)cmb_turma.SelectedValue != 0)
                     {
-                        Filtro.Append(" AND a.Turma = @turma");
+                        Filtro.Append(" AND a.Cod_Turma = @turma");
                     }
 
-                    if (cmb_orientador.SelectedValue != null && cmb_orientador.SelectedValue.ToString() != "0")
+                    if (cmb_orientador.SelectedValue != null && (int)cmb_orientador.SelectedValue != 0)
                     {
                         Filtro.Append(" AND a.Cod_Ori = @orientador");
                     }
@@ -285,12 +307,12 @@ namespace DCGest
                             comando.Parameters.AddWithValue("@nome", "%" + txt_nome.Text + "%");
                         }
 
-                        if (cmb_turma.SelectedValue != null && cmb_turma.SelectedValue.ToString() != "*")
+                        if (cmb_turma.SelectedValue != null && (int)cmb_turma.SelectedValue != 0)
                         {
                             comando.Parameters.AddWithValue("@turma", cmb_turma.SelectedValue);
                         }
 
-                        if (cmb_orientador.SelectedValue != null && cmb_orientador.SelectedValue.ToString() != "0")
+                        if (cmb_orientador.SelectedValue != null && (int)cmb_orientador.SelectedValue != 0)
                         {
                             comando.Parameters.AddWithValue("@orientador", cmb_orientador.SelectedValue);
                         }
@@ -306,13 +328,15 @@ namespace DCGest
                                 listaAlunos.Add(new Aluno(
                                     Convert.ToInt32(leitor["Cod_Aluno"]),
                                     leitor["Nome_Aluno"].ToString(),
-                                    leitor["Turma"].ToString(),
+                                    Convert.ToInt32(leitor["Cod_Turma"]),
                                     Convert.ToInt32(leitor["Cod_Curso"]),
                                     leitor["Estado_Estagio"].ToString(),
                                     codOri,
-                                    leitor["Ano_Letivo"].ToString(),
+                                    Convert.ToInt32(leitor["Cod_Letivo"]),
                                     leitor["Nome_Curso"].ToString(),
-                                    leitor["Nome_Orientador"].ToString()
+                                    leitor["Nome_Orientador"]?.ToString() ?? "N/A",
+                                    leitor["Nome_Turma"].ToString(),
+                                    leitor["Intervalo_Letivo"].ToString()
                                 ));
                             }
                         }

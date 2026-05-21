@@ -37,10 +37,10 @@ namespace DCGest
         string caminho = BD.CaminhoBD;
 
         // Listas 
-        List<string> listaTurmas = new List<string>();
+        List<Turma> listaTurmas = new List<Turma>();
         List<Curso> listaCursos = new List<Curso>();
         List<Orientador> listaOrientadores = new List<Orientador>();
-        List<string> listaAnos = new List<string>();
+        List<AnoLetivo> listaAnos = new List<AnoLetivo>();
 
         private void Cmb_Tipo_Seleciona(object sender, SelectionChangedEventArgs e)
         {
@@ -67,17 +67,25 @@ namespace DCGest
                     conexao.Open();
 
                     // Turma
-                    string sql_Turma = "SELECT Nome FROM Apoio_Turmas ORDER BY Nome";
+                    string sql_Turma = "SELECT Cod_Turma, Nome FROM turmas ORDER BY Nome";
                     listaTurmas.Clear();
                     using (MySqlCommand comando = new MySqlCommand(sql_Turma, conexao))
                     {
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
-                            while (leitor.Read()) listaTurmas.Add(leitor["Nome"].ToString());
+                            while (leitor.Read())
+                            {
+                                listaTurmas.Add(new Turma(
+                                    Convert.ToInt32(leitor["Cod_Turma"]),
+                                    leitor["Nome"].ToString()
+                                ));
+                            }
                         }
                     }
                     cmb_Turma.ItemsSource = null;
                     cmb_Turma.ItemsSource = listaTurmas;
+                    cmb_Turma.DisplayMemberPath = "Nome";
+                    cmb_Turma.SelectedValuePath = "Cod_Turma";
                     if (listaTurmas.Count > 0) cmb_Turma.SelectedIndex = 0;
 
                     // Curso
@@ -126,17 +134,25 @@ namespace DCGest
                     cmb_Orientador.SelectedIndex = 0;
 
                     // Ano-Letivo
-                    string sql_Ano = "SELECT Intervalo FROM Apoio_AnosLetivos ORDER BY Intervalo";
+                    string sql_Ano = "SELECT Cod_Letivo, Intervalo FROM anosletivos ORDER BY Intervalo";
                     listaAnos.Clear();
                     using (MySqlCommand comando = new MySqlCommand(sql_Ano, conexao))
                     {
                         using (MySqlDataReader leitor = comando.ExecuteReader())
                         {
-                            while (leitor.Read()) listaAnos.Add(leitor["Intervalo"].ToString());
+                            while (leitor.Read())
+                            {
+                                listaAnos.Add(new AnoLetivo(
+                                    Convert.ToInt32(leitor["Cod_Letivo"]),
+                                    leitor["Intervalo"].ToString()
+                                ));
+                            }
                         }
                     }
                     cmb_Ano.ItemsSource = null;
                     cmb_Ano.ItemsSource = listaAnos;
+                    cmb_Ano.DisplayMemberPath = "Intervalo";
+                    cmb_Ano.SelectedValuePath = "Cod_Letivo";
                     if (listaAnos.Count > 0) cmb_Ano.SelectedIndex = 0;
                 }
             }
@@ -182,16 +198,16 @@ namespace DCGest
                     novaEntidade = new Aluno(
                         Convert.ToInt32(txtCodAluno.Text),
                         txtNomeAluno.Text.Trim(),
-                        cmb_Turma.SelectedValue.ToString(),
+                        Convert.ToInt32(cmb_Turma.SelectedValue),
                         Convert.ToInt32(cmb_Curso.SelectedValue),
                         "Não Pronto",
                         codOri,
-                        cmb_Ano.SelectedValue.ToString()
+                        Convert.ToInt32(cmb_Ano.SelectedValue)
                     );
                 }
                 else // Orientador
                 {
-                    if (txtNomeOri.Text == string.Empty)
+                    if (string.IsNullOrEmpty(txtNomeOri.Text))
                     {
                         MessageBox.Show("Preencha o nome do Orientador!");
                         return;

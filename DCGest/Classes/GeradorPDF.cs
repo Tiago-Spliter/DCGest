@@ -32,11 +32,13 @@ namespace DCGest.Classes
 
         public string GerarRelatorioAluno(Aluno aluno)
         {
+            // BUSCAR INFO COMPLETA DO ALUNO (COM NOMES DAS FKs)
+            Aluno alunoCompleto = ObterInfoAluno(aluno.Cod_Aluno);
+
             string pastaTemp = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Relatorios");
             if (!Directory.Exists(pastaTemp)) Directory.CreateDirectory(pastaTemp);
             string caminhoPdf = Path.Combine(pastaTemp, $"Relatorio_{aluno.Cod_Aluno}.pdf");
 
-            // Margens menores para caber tudo na mesma página
             Document doc = new Document(PageSize.A4.Rotate(), 20, 20, 15, 15);
             PdfWriter writer = PdfWriter.GetInstance(doc, new FileStream(caminhoPdf, FileMode.Create));
             doc.Open();
@@ -55,27 +57,27 @@ namespace DCGest.Classes
             tabHeader.AddCell(cellTitle);
 
             PdfPCell cellEsq = new PdfPCell(); cellEsq.Border = 0;
-            cellEsq.AddElement(new Phrase("ALUNO: " + aluno.Nome_Aluno.ToUpper(), fBold));
-            cellEsq.AddElement(new Phrase("Nº PROCESSO: " + aluno.Cod_Aluno, fBase));
-            cellEsq.AddElement(new Phrase("CURSO: " + aluno.Nome_Curso, fBase));
+            cellEsq.AddElement(new Phrase("ALUNO: " + alunoCompleto.Nome_Aluno.ToUpper(), fBold));
+            cellEsq.AddElement(new Phrase("Nº PROCESSO: " + alunoCompleto.Cod_Aluno, fBase));
+            cellEsq.AddElement(new Phrase("CURSO: " + alunoCompleto.Nome_Curso, fBase));
             tabHeader.AddCell(cellEsq);
 
             PdfPCell cellDir = new PdfPCell(); cellDir.Border = 0; cellDir.HorizontalAlignment = Element.ALIGN_RIGHT;
             Paragraph pDir = new Paragraph();
             pDir.Alignment = Element.ALIGN_RIGHT;
-            pDir.Add(new Phrase("TURMA: " + aluno.Turma + "\n", fBase));
-            pDir.Add(new Phrase("ANO LETIVO: " + aluno.Ano_Letivo + "\n", fBase));
-            pDir.Add(new Phrase("ORIENTADOR: " + aluno.Nome_Orientador, fBase));
+            pDir.Add(new Phrase("TURMA: " + alunoCompleto.Nome_Turma + "\n", fBase));
+            pDir.Add(new Phrase("ANO LETIVO: " + alunoCompleto.Intervalo_Letivo + "\n", fBase));
+            pDir.Add(new Phrase("ORIENTADOR: " + alunoCompleto.Nome_Orientador, fBase));
             cellDir.AddElement(pDir);
             tabHeader.AddCell(cellDir);
 
             doc.Add(tabHeader);
 
-            // 2. GRELHA DE MÓDULOS (Sem ID, 20 Colunas)
+            // 2. GRELHA DE MÓDULOS
             PdfPTable gridM = new PdfPTable(20);
             gridM.WidthPercentage = 100;
             float[] wGrid = new float[20];
-            wGrid[0] = 5f; // Disciplinas
+            wGrid[0] = 5f; 
             for (int i = 1; i < 20; i++) wGrid[i] = 1f;
             gridM.SetWidths(wGrid);
 
@@ -85,7 +87,6 @@ namespace DCGest.Classes
 
             var todasNotas = ObterTodasNotas(aluno.Cod_Aluno);
 
-            // ORDEM: SOCIOCULTURAL (1), CIENTIFICA (2), TECNICA (3)
             var gruposComponentes = todasNotas.GroupBy(n => n.NomeDisciplina).OrderBy(g => GetPrioridadeTipo(g.First().TipoDisciplina)).ThenBy(g => g.Key);
 
             foreach (var disc in gruposComponentes)
@@ -117,12 +118,11 @@ namespace DCGest.Classes
 
             doc.Add(gridM);
 
-            // 3. MÉDIAS E FINAL (Compacto)
+            // 3. MÉDIAS E FINAL
             PdfPTable rowMedias = new PdfPTable(2);
             rowMedias.WidthPercentage = 100;
             rowMedias.SetWidths(new float[] { 1, 3 });
 
-            // Bloco Médias Modalidades
             PdfPTable tabMediasMod = new PdfPTable(2);
             tabMediasMod.AddCell(new PdfPCell(new Phrase("Média das Sociocultural", fBase)) { Border = 0 });
             tabMediasMod.AddCell(new PdfPCell(new Phrase(CalcularMedia(todasNotas, "sociocultural"), fBold)) { HorizontalAlignment = Element.ALIGN_CENTER });
@@ -134,7 +134,6 @@ namespace DCGest.Classes
             PdfPCell cellMedias = new PdfPCell(tabMediasMod) { Border = 0, VerticalAlignment = Element.ALIGN_BOTTOM };
             rowMedias.AddCell(cellMedias);
 
-            // Bloco Média Final
             PdfPTable tabMF = new PdfPTable(2);
             tabMF.WidthPercentage = 50;
             tabMF.HorizontalAlignment = Element.ALIGN_RIGHT;
@@ -224,6 +223,47 @@ namespace DCGest.Classes
         {
             var f = notas.Where(n => n.TipoDisciplina.ToLower().Contains(tipo) && n.Valor != null && n.Valor >= 0).ToList();
             return f.Any() ? f.Average(n => (double)n.Valor!).ToString("N1") : "0,0";
+        }
+
+        private Aluno ObterInfoAluno(int cod)
+        {
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                conn.Open();
+                string sql = @"
+                    SELECT a.*, c.Nome_Curso, o.Nome_Orientador, t.Nome as Nome_Turma, al.Intervalo as Intervalo_Letivo
+                    FROM aluno a
+                    LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso
+                    LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador
+                    LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma
+                    LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo
+                    WHERE a.Cod_Aluno = @Cod";
+                
+                using (MySqlCommand cmd = new MySqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Cod", cod);
+                    using (MySqlDataReader r = cmd.ExecuteReader())
+                    {
+                        if (r.Read())
+                        {
+                            return new Aluno(
+                                Convert.ToInt32(r["Cod_Aluno"]),
+                                r["Nome_Aluno"].ToString(),
+                                Convert.ToInt32(r["Cod_Turma"]),
+                                Convert.ToInt32(r["Cod_Curso"]),
+                                r["Estado_Estagio"].ToString(),
+                                r["Cod_Ori"] == DBNull.Value ? null : (int?)Convert.ToInt32(r["Cod_Ori"]),
+                                Convert.ToInt32(r["Cod_Letivo"]),
+                                r["Nome_Curso"].ToString(),
+                                r["Nome_Orientador"]?.ToString() ?? "N/A",
+                                r["Nome_Turma"].ToString(),
+                                r["Intervalo_Letivo"].ToString()
+                            );
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         private List<NotaModulo> ObterTodasNotas(int codAluno)
