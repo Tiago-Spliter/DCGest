@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -18,10 +18,16 @@ namespace DCGest
     {
         public MainWindow()
         {
-            InitializeComponent();
-
-            InformacaoInicial InformacaoInicial = new InformacaoInicial();
-            frm.Content = InformacaoInicial;
+            JanelaLogin login = new JanelaLogin();
+            if (login.ShowDialog() == true)
+            {
+                InitializeComponent();
+                frm.Content = new InformacaoInicial();
+            }
+            else
+            {
+                Application.Current.Shutdown();
+            }
         }
 
         private void Btn_Click_PaginaInicial(object sender, RoutedEventArgs e)

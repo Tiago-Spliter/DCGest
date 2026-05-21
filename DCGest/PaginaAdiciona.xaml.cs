@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using DCGest.Classes;
+using BCrypt.Net;
 
 using System.Text.RegularExpressions;
 
@@ -44,17 +45,24 @@ namespace DCGest
 
         private void Cmb_Tipo_Seleciona(object sender, SelectionChangedEventArgs e)
         {
-            if (painelAluno == null || painelOrientador == null) return;
+            if (painelAluno == null || painelOrientador == null || painelDC == null) return;
 
-            if (cmb_tipo.SelectedIndex == 0)
+            // Reset visibility
+            painelAluno.Visibility = Visibility.Collapsed;
+            painelOrientador.Visibility = Visibility.Collapsed;
+            painelDC.Visibility = Visibility.Collapsed;
+
+            if (cmb_tipo.SelectedIndex == 0) // Aluno
             {
                 painelAluno.Visibility = Visibility.Visible;
-                painelOrientador.Visibility = Visibility.Collapsed;
             }
-            else
+            else if (cmb_tipo.SelectedIndex == 1) // Orientador
             {
-                painelAluno.Visibility = Visibility.Collapsed;
                 painelOrientador.Visibility = Visibility.Visible;
+            }
+            else if (cmb_tipo.SelectedIndex == 2) // Diretor de Curso
+            {
+                painelDC.Visibility = Visibility.Visible;
             }
         }
 
@@ -104,11 +112,19 @@ namespace DCGest
                             }
                         }
                     }
+                    
+                    // Populate both Aluno and DC courses
                     cmb_Curso.ItemsSource = null;
                     cmb_Curso.ItemsSource = listaCursos;
                     cmb_Curso.DisplayMemberPath = "Nome_Curso";
                     cmb_Curso.SelectedValuePath = "Cod_Curso";
                     if (listaCursos.Count > 0) cmb_Curso.SelectedIndex = 0;
+
+                    cmb_CursoDC.ItemsSource = null;
+                    cmb_CursoDC.ItemsSource = listaCursos;
+                    cmb_CursoDC.DisplayMemberPath = "Nome_Curso";
+                    cmb_CursoDC.SelectedValuePath = "Cod_Curso";
+                    if (listaCursos.Count > 0) cmb_CursoDC.SelectedIndex = 0;
 
                     // Orientador
                     string sql_Orientador = "SELECT Cod_Orientador, Nome_Orientador FROM orientador ORDER BY Nome_Orientador";
@@ -166,8 +182,6 @@ namespace DCGest
         {
             try
             {
-                Entidade novaEntidade = null;
-
                 if (cmb_tipo.SelectedIndex == 0) // Aluno
                 {
                     if (string.IsNullOrEmpty(txtCodAluno.Text) || string.IsNullOrEmpty(txtNomeAluno.Text) || cmb_Turma.SelectedItem == null || cmb_Curso.SelectedItem == null || cmb_Ano.SelectedItem == null)
@@ -195,7 +209,7 @@ namespace DCGest
                         if (orientadorSelecionado.Cod_Orientador != 0) codOri = orientadorSelecionado.Cod_Orientador;
                     }
 
-                    novaEntidade = new Aluno(
+                    Aluno novoAluno = new Aluno(
                         Convert.ToInt32(txtCodAluno.Text),
                         txtNomeAluno.Text.Trim(),
                         Convert.ToInt32(cmb_Turma.SelectedValue),
@@ -204,8 +218,16 @@ namespace DCGest
                         codOri,
                         Convert.ToInt32(cmb_Ano.SelectedValue)
                     );
+
+                    var res = MessageBox.Show("Deseja confirmar a gravação deste Aluno?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (res == MessageBoxResult.Yes)
+                    {
+                        novoAluno.InserirNaBD(caminho);
+                        MessageBox.Show("Aluno guardado com sucesso!");
+                        LimparCampos();
+                    }
                 }
-                else // Orientador
+                else if (cmb_tipo.SelectedIndex == 1) // Orientador
                 {
                     if (string.IsNullOrEmpty(txtNomeOri.Text))
                     {
@@ -219,27 +241,78 @@ namespace DCGest
                         return;
                     }
 
-                    novaEntidade = new Orientador(0, txtNomeOri.Text.Trim());
-                }
+                    Orientador novoOri = new Orientador(0, txtNomeOri.Text.Trim());
 
-                if (novaEntidade != null)
-                {
-                    var res = MessageBox.Show("Deseja confirmar a gravação deste registo?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                    
+                    var res = MessageBox.Show("Deseja confirmar a gravação deste Orientador?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
                     if (res == MessageBoxResult.Yes)
                     {
-                        novaEntidade.InserirNaBD(caminho);
-                        MessageBox.Show("Registo guardado com sucesso!");
-
-                        if (novaEntidade.GetType() == typeof(Orientador)) CarregarCombos();
-
+                        novoOri.InserirNaBD(caminho);
+                        MessageBox.Show("Orientador guardado com sucesso!");
+                        CarregarCombos();
                         LimparCampos();
+                    }
+                }
+                else if (cmb_tipo.SelectedIndex == 2) // Diretor de Curso
+                {
+                    if (string.IsNullOrEmpty(txtNomeDC.Text) || string.IsNullOrEmpty(txtUserDC.Text) || string.IsNullOrEmpty(txtPassDC.Password) || cmb_CursoDC.SelectedItem == null)
+                    {
+                        MessageBox.Show("Preencha todos os campos obrigatórios do Diretor!");
+                        return;
+                    }
+
+                    var res = MessageBox.Show("Deseja confirmar a gravação deste Diretor de Curso?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (res == MessageBoxResult.Yes)
+                    {
+                        InserirDiretorCurso();
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao guardar dados (Polimorfismo): " + ex.Message);
+                MessageBox.Show("Erro ao guardar dados: " + ex.Message);
+            }
+        }
+
+        private void InserirDiretorCurso()
+        {
+            using (MySqlConnection conn = new MySqlConnection(caminho))
+            {
+                conn.Open();
+                using (MySqlTransaction trans = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // 1. Inserir em Autenticacao com BCrypt
+                        string passHash = BCrypt.Net.BCrypt.HashPassword(txtPassDC.Password);
+                        string sqlAut = "INSERT INTO autenticacao (Utilizador, PalavraPasse) VALUES (@user, @pass); SELECT LAST_INSERT_ID();";
+                        int codAut;
+                        using (MySqlCommand cmdAut = new MySqlCommand(sqlAut, conn, trans))
+                        {
+                            cmdAut.Parameters.AddWithValue("@user", txtUserDC.Text.Trim());
+                            cmdAut.Parameters.AddWithValue("@pass", passHash);
+                            codAut = Convert.ToInt32(cmdAut.ExecuteScalar());
+                        }
+
+                        // 2. Inserir em Diretor_Curso
+                        string sqlDC = "INSERT INTO diretor_curso (Nome_DC, Cod_Curso, Cod_Aut) VALUES (@nome, @curso, @aut)";
+                        using (MySqlCommand cmdDC = new MySqlCommand(sqlDC, conn, trans))
+                        {
+                            cmdDC.Parameters.AddWithValue("@nome", txtNomeDC.Text.Trim());
+                            cmdDC.Parameters.AddWithValue("@curso", cmb_CursoDC.SelectedValue);
+                            cmdDC.Parameters.AddWithValue("@aut", codAut);
+                            cmdDC.ExecuteNonQuery();
+                        }
+
+                        trans.Commit();
+                        MessageBox.Show("Diretor de Curso e Credenciais criados com sucesso!");
+                        LimparCampos();
+                    }
+                    catch (Exception ex)
+                    {
+                        trans.Rollback();
+                        MessageBox.Show("Erro ao criar Diretor: " + ex.Message);
+                    }
+                }
             }
         }
 
@@ -248,8 +321,12 @@ namespace DCGest
             txtCodAluno.Text = string.Empty;
             txtNomeAluno.Text = string.Empty;
             txtNomeOri.Text = string.Empty;
+            txtNomeDC.Text = string.Empty;
+            txtUserDC.Text = string.Empty;
+            txtPassDC.Clear();
             cmb_Turma.SelectedIndex = -1;
             cmb_Curso.SelectedIndex = -1;
+            cmb_CursoDC.SelectedIndex = -1;
             cmb_Orientador.SelectedIndex = -1;
             cmb_Ano.SelectedIndex = -1;
         }

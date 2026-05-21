@@ -354,6 +354,31 @@ namespace DCGest
 
 
 
+        private void Btn_Click_EditarAluno(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (dg_alunos.SelectedItem != null)
+                {
+                    Aluno selecionado = (Aluno)dg_alunos.SelectedItem;
+
+                    JanelaEditaAluno janela = new JanelaEditaAluno(selecionado.Cod_Aluno);
+                    if (janela.ShowDialog() == true)
+                    {
+                        CarregarAlunos(); // Atualiza a lista se houve alteração
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Por favor, selecione um aluno na lista para editar.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao abrir edição: " + ex.Message);
+            }
+        }
+
         private void Btn_Click_GerarPDF(object sender, RoutedEventArgs e)
         {
             try

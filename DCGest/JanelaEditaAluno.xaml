@@ -1,0 +1,45 @@
+<Window x:Class="DCGest.JanelaEditaAluno"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:local="clr-namespace:DCGest" 
+        mc:Ignorable="d" 
+        Title="Editar Aluno" Height="650" Width="500" WindowStartupLocation="CenterScreen" Background="#F3F5F9" FontFamily="Segoe UI">
+    
+    <Grid Margin="30">
+        <StackPanel>
+            <TextBlock Text="Editar Dados do Aluno" FontSize="26" FontWeight="Bold" Foreground="#1A2E52" Margin="0,0,0,30" HorizontalAlignment="Center"/>
+
+            <Border Background="White" CornerRadius="15" Padding="30" BorderBrush="#E0E6ED" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Nome Completo" Foreground="#5A6478" Margin="0,0,0,5"/>
+                    <TextBox Name="txt_nome" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,15"/>
+
+                    <TextBlock Text="Turma" Foreground="#5A6478" Margin="0,0,0,5"/>
+                    <ComboBox Name="cmb_turma" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,15" DisplayMemberPath="Nome" SelectedValuePath="Cod_Turma"/>
+
+                    <TextBlock Text="Curso" Foreground="#5A6478" Margin="0,0,0,5"/>
+                    <ComboBox Name="cmb_curso" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,15" DisplayMemberPath="Nome_Curso" SelectedValuePath="Cod_Curso"/>
+
+                    <TextBlock Text="Orientador" Foreground="#5A6478" Margin="0,0,0,5"/>
+                    <ComboBox Name="cmb_orientador" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,15" DisplayMemberPath="Nome_Orientador" SelectedValuePath="Cod_Orientador"/>
+
+                    <TextBlock Text="Ano Letivo" Foreground="#5A6478" Margin="0,0,0,5"/>
+                    <ComboBox Name="cmb_anoletivo" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,15" DisplayMemberPath="Intervalo" SelectedValuePath="Cod_Letivo"/>
+
+                    <TextBlock Text="Estado Estágio" Foreground="#5A6478" Margin="0,0,0,5"/>
+                    <ComboBox Name="cmb_estado" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,30">
+                        <ComboBoxItem Content="Não Pronto"/>
+                        <ComboBoxItem Content="Pronto"/>
+                    </ComboBox>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Content="Salvar Alterações" Width="180" Height="42" Background="#293472" Foreground="White" FontWeight="Bold" Cursor="Hand" Click="Btn_Click_Salvar" Margin="0,0,10,0"/>
+                        <Button Content="Cancelar" Width="100" Height="42" Background="#F3F5F9" Cursor="Hand" Click="Btn_Click_Cancelar"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Grid>
+</Window>
