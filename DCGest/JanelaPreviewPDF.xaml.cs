@@ -8,7 +8,7 @@ namespace DCGest
         public JanelaPreviewPDF(string caminhoPdf)
         {
             InitializeComponent();
-            
+
             // O WebBrowser do WPF precisa de um URI absoluto
             pdfViewer.Navigate(new Uri(caminhoPdf));
         }

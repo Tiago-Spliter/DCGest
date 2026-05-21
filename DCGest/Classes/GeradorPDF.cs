@@ -20,14 +20,14 @@ namespace DCGest.Classes
         BaseColor corPAP = new BaseColor(242, 220, 219);          // Rosa
 
         // CORES ANOS
-        BaseColor corFundoAno1 = new BaseColor(252, 213, 180);    
-        BaseColor corFundoAno2 = new BaseColor(216, 228, 188);    
-        BaseColor corFundoAno3 = new BaseColor(230, 184, 183);    
+        BaseColor corFundoAno1 = new BaseColor(252, 213, 180);
+        BaseColor corFundoAno2 = new BaseColor(216, 228, 188);
+        BaseColor corFundoAno3 = new BaseColor(230, 184, 183);
 
         // CORES CABEÇALHOS ANOS
-        BaseColor corHeaderAno1 = new BaseColor(228, 108, 10);    
-        BaseColor corHeaderAno2 = new BaseColor(118, 147, 60);    
-        BaseColor corHeaderAno3 = new BaseColor(148, 54, 52);     
+        BaseColor corHeaderAno1 = new BaseColor(228, 108, 10);
+        BaseColor corHeaderAno2 = new BaseColor(118, 147, 60);
+        BaseColor corHeaderAno3 = new BaseColor(148, 54, 52);
 
         public string GerarRelatorioAluno(Aluno aluno)
         {
@@ -82,7 +82,7 @@ namespace DCGest.Classes
             PdfPTable gridM = new PdfPTable(20);
             gridM.WidthPercentage = 100;
             float[] wGrid = new float[20];
-            wGrid[0] = 5f; 
+            wGrid[0] = 5f;
             for (int i = 1; i < 20; i++) wGrid[i] = 1f;
             gridM.SetWidths(wGrid);
 
@@ -111,9 +111,18 @@ namespace DCGest.Classes
             foreach (string nomeDisc in nomesDisciplinas)
             {
                 string tipo = discAgrupadas[nomeDisc][0].TipoDisciplina.ToLower();
-                if (tipo.Contains("sociocultural")) discSocioculturais.Add(nomeDisc);
-                else if (tipo.Contains("científica")) discCientificas.Add(nomeDisc);
-                else if (tipo.Contains("técnica")) discTecnicas.Add(nomeDisc);
+                if (tipo.Contains("sociocultural"))
+                {
+                    discSocioculturais.Add(nomeDisc);
+                }
+                else if (tipo.Contains("científica"))
+                {
+                    discCientificas.Add(nomeDisc);
+                }
+                else if (tipo.Contains("técnica"))
+                {
+                    discTecnicas.Add(nomeDisc);
+                }
             }
 
             discSocioculturais.Sort();
@@ -129,14 +138,14 @@ namespace DCGest.Classes
             {
                 List<NotaModulo> mods = discAgrupadas[nomeDisc];
                 string tipo = mods[0].TipoDisciplina;
-                
+
                 gridM.AddCell(new PdfPCell(new Phrase(nomeDisc, fBase)) { BackgroundColor = GetCorComponente(tipo), Padding = 2 });
 
                 for (int i = 0; i < 19; i++)
                 {
                     string valorNota = "";
                     BaseColor corFundoCelula = BaseColor.WHITE;
-                    
+
                     if (i < mods.Count)
                     {
                         if (mods[i].Valor != null)
@@ -149,7 +158,7 @@ namespace DCGest.Classes
                         }
                         corFundoCelula = GetCorFundoAno(mods[i].Ano);
                     }
-                    
+
                     gridM.AddCell(new PdfPCell(new Phrase(valorNota, fBase)) { BackgroundColor = corFundoCelula, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
                 }
             }
@@ -186,7 +195,7 @@ namespace DCGest.Classes
             tabMF.HorizontalAlignment = Element.ALIGN_RIGHT;
             tabMF.AddCell(new PdfPCell(new Phrase("Média final de curso", fBold)) { BackgroundColor = new BaseColor(255, 255, 0), Padding = 3 });
             tabMF.AddCell(new PdfPCell(new Phrase("---", fBold)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 3 });
-            
+
             PdfPCell cellMF = new PdfPCell(tabMF) { Border = 0, VerticalAlignment = Element.ALIGN_BOTTOM, HorizontalAlignment = Element.ALIGN_RIGHT };
             rowMedias.AddCell(cellMF);
 
@@ -202,7 +211,7 @@ namespace DCGest.Classes
             tabAnos.AddCell(CriarMiniTabelaAno(todasNotas, "1º Ano", corHeaderAno1, fBase, fBold));
             tabAnos.AddCell(CriarMiniTabelaAno(todasNotas, "2º Ano", corHeaderAno2, fBase, fBold));
             tabAnos.AddCell(CriarMiniTabelaAno(todasNotas, "3º Ano", corHeaderAno3, fBase, fBold));
-            
+
             doc.Add(tabAnos);
             doc.Close();
             return caminhoPdf;
@@ -211,7 +220,7 @@ namespace DCGest.Classes
         private PdfPCell CriarMiniTabelaAno(List<NotaModulo> notas, string ano, BaseColor cHeader, Font fBase, Font fBold)
         {
             PdfPCell cell = new PdfPCell() { Border = 0, Padding = 3 };
-            
+
             List<NotaModulo> notasAno = new List<NotaModulo>();
             int totalNR = 0;
             int tecnicasNR = 0;
@@ -242,9 +251,9 @@ namespace DCGest.Classes
             PdfPTable data = new PdfPTable(4);
             data.WidthPercentage = 100;
             data.AddCell(new PdfPCell(new Phrase(ano, fBold)) { BackgroundColor = cHeader, Colspan = 4, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
-            
+
             string[] subH = { "MÉDIA", "MÓD NR", "SIT.", "TEC" };
-            foreach(string s in subH) 
+            foreach (string s in subH)
             {
                 data.AddCell(new PdfPCell(new Phrase(s, fBold)) { BackgroundColor = new BaseColor(230, 230, 230), Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
             }
@@ -268,9 +277,18 @@ namespace DCGest.Classes
             foreach (string nomeDisc in nomesDisciplinas)
             {
                 string tipo = discAgrupadas[nomeDisc][0].TipoDisciplina.ToLower();
-                if (tipo.Contains("sociocultural")) discSocioculturais.Add(nomeDisc);
-                else if (tipo.Contains("científica")) discCientificas.Add(nomeDisc);
-                else if (tipo.Contains("técnica")) discTecnicas.Add(nomeDisc);
+                if (tipo.Contains("sociocultural"))
+                {
+                    discSocioculturais.Add(nomeDisc);
+                }
+                else if (tipo.Contains("científica"))
+                {
+                    discCientificas.Add(nomeDisc);
+                }
+                else if (tipo.Contains("técnica"))
+                {
+                    discTecnicas.Add(nomeDisc);
+                }
             }
 
             discSocioculturais.Sort();
@@ -285,12 +303,12 @@ namespace DCGest.Classes
             foreach (string nomeDisc in ordemFinal)
             {
                 List<NotaModulo> notasDaDisciplina = discAgrupadas[nomeDisc];
-                
+
                 double somaNotas = 0;
                 int countComNota = 0;
                 bool chumbouAlgum = false;
 
-                foreach(NotaModulo v in notasDaDisciplina)
+                foreach (NotaModulo v in notasDaDisciplina)
                 {
                     if (v.Valor != null && v.Valor >= 0)
                     {
@@ -306,7 +324,7 @@ namespace DCGest.Classes
 
                 double mediaCalculada = 0;
                 if (countComNota > 0) mediaCalculada = somaNotas / countComNota;
-                
+
                 string situacaoFinal = "C";
                 if (chumbouAlgum == true) situacaoFinal = "SC";
 
@@ -317,7 +335,7 @@ namespace DCGest.Classes
                 data.AddCell(new PdfPCell(new Phrase(situacaoFinal, fBase)) { BackgroundColor = bgCor, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
                 data.AddCell(new PdfPCell(new Phrase("", fBase)) { BackgroundColor = bgCor, Padding = 2 });
             }
-            
+
             cell.AddElement(data);
             return cell;
         }
@@ -382,7 +400,7 @@ namespace DCGest.Classes
                         {
                             int idNota = Convert.ToInt32(r["Cod_NotaMod"]);
                             int idMod = Convert.ToInt32(r["Cod_Modulo"]);
-                            
+
                             int? valorNota = null;
                             if (r["Valor"] != DBNull.Value)
                             {

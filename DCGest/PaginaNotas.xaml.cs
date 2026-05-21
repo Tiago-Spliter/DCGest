@@ -39,15 +39,15 @@ namespace DCGest
         List<MediaDisciplina> listaMedias = new List<MediaDisciplina>();
 
         // Objetos para guardar as notas especiais (FCT/PAP)
-        NotaModulo? notaFCT = null;
-        NotaModulo? notaPAP = null;
+        NotaModulo notaFCT = null;
+        NotaModulo notaPAP = null;
 
 
         private void CarregarNomeAluno()
         {
             try
             {
-                Aluno? a = Aluno.ObterPorId(codAluno);
+                Aluno a = Aluno.ObterPorId(codAluno);
                 if (a != null)
                 {
                     txtNomeAluno.Text = a.Nome_Aluno;
@@ -99,12 +99,24 @@ namespace DCGest
                                 string discNome = leitor["Disciplina"].ToString();
                                 string anoNota = leitor["Ano"].ToString();
 
+                                int? valorDaNota = null;
+                                if (leitor["Valor"] != DBNull.Value)
+                                {
+                                    valorDaNota = Convert.ToInt32(leitor["Valor"]);
+                                }
+
+                                DateTime? dataEfetua = null;
+                                if (leitor["Data_Efetua"] != DBNull.Value)
+                                {
+                                    dataEfetua = Convert.ToDateTime(leitor["Data_Efetua"]);
+                                }
+
                                 NotaModulo n = new NotaModulo(
                                     Convert.ToInt32(leitor["Cod_NotaMod"]),
                                     codAluno,
                                     0,
-                                    leitor["Valor"] == DBNull.Value ? null : (int?)Convert.ToInt32(leitor["Valor"]),
-                                    leitor["Data_Efetua"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(leitor["Data_Efetua"]),
+                                    valorDaNota,
+                                    dataEfetua,
                                     anoNota,
                                     leitor["Modulo"].ToString(),
                                     discNome,
@@ -117,12 +129,26 @@ namespace DCGest
                                     if (discNome.ToUpper().Contains("FCT"))
                                     {
                                         notaFCT = n;
-                                        txt_notaFCT.Text = n.Valor?.ToString() ?? "0";
+                                        if (n.Valor != null)
+                                        {
+                                            txt_notaFCT.Text = n.Valor.ToString();
+                                        }
+                                        else
+                                        {
+                                            txt_notaFCT.Text = "0";
+                                        }
                                     }
                                     else if (discNome.ToUpper().Contains("PAP"))
                                     {
                                         notaPAP = n;
-                                        txt_notaPAP.Text = n.Valor?.ToString() ?? "0";
+                                        if (n.Valor != null)
+                                        {
+                                            txt_notaPAP.Text = n.Valor.ToString();
+                                        }
+                                        else
+                                        {
+                                            txt_notaPAP.Text = "0";
+                                        }
                                     }
                                 }
                                 // Se for uma disciplina normal E do ano selecionado, vai para a grid
@@ -148,9 +174,18 @@ namespace DCGest
 
         private int GetPrioridadeTipo(string tipo)
         {
-            if (tipo.ToLower().Contains("sociocultural")) return 1;
-            if (tipo.ToLower().Contains("científica")) return 2;
-            if (tipo.ToLower().Contains("técnica")) return 3;
+            if (tipo.ToLower().Contains("sociocultural"))
+            {
+                return 1;
+            }
+            if (tipo.ToLower().Contains("científica"))
+            {
+                return 2;
+            }
+            if (tipo.ToLower().Contains("técnica"))
+            {
+                return 3;
+            }
             return 4;
         }
 
@@ -172,14 +207,39 @@ namespace DCGest
                     grupos[nota.NomeDisciplina].Add(nota);
                 }
 
-                // 2. Ordenar grupos pela prioridade do tipo
-                var gruposOrdenados = grupos.OrderBy(g => GetPrioridadeTipo(g.Value[0].TipoDisciplina)).ThenBy(g => g.Key);
+                // Extrair as chaves para uma lista para ordenar
+                List<string> chaves = new List<string>(grupos.Keys);
+
+                // Bubble sort para ordenar os grupos baseados na prioridade (Sociocultural, Cientifica, Tecnica)
+                for (int i = 0; i < chaves.Count - 1; i++)
+                {
+                    for (int j = i + 1; j < chaves.Count; j++)
+                    {
+                        int prioridadeI = GetPrioridadeTipo(grupos[chaves[i]][0].TipoDisciplina);
+                        int prioridadeJ = GetPrioridadeTipo(grupos[chaves[j]][0].TipoDisciplina);
+
+                        if (prioridadeI > prioridadeJ)
+                        {
+                            string temp = chaves[i];
+                            chaves[i] = chaves[j];
+                            chaves[j] = temp;
+                        }
+                        else if (prioridadeI == prioridadeJ)
+                        {
+                            if (string.Compare(chaves[i], chaves[j]) > 0)
+                            {
+                                string temp = chaves[i];
+                                chaves[i] = chaves[j];
+                                chaves[j] = temp;
+                            }
+                        }
+                    }
+                }
 
                 // 3. Calcular a média e situação de cada disciplina
-                foreach (var par in gruposOrdenados)
+                foreach (string nome in chaves)
                 {
-                    string nome = par.Key;
-                    List<NotaModulo> notasDaDisciplina = par.Value;
+                    List<NotaModulo> notasDaDisciplina = grupos[nome];
 
                     double somaNotas = 0;
                     int contadorModulosComNota = 0;
@@ -206,7 +266,11 @@ namespace DCGest
                         mediaCalculada = somaNotas / contadorModulosComNota;
                     }
 
-                    string estado = reprovouAlgumModulo ? "SC" : "C";
+                    string estado = "C";
+                    if (reprovouAlgumModulo == true)
+                    {
+                        estado = "SC";
+                    }
 
                     listaMedias.Add(new MediaDisciplina(nome, tipo, mediaCalculada, contadorModulosComNota, estado));
                 }
@@ -242,18 +306,52 @@ namespace DCGest
                 }
 
                 // Mostrar resultados
-                txt_mediaGeral.Text = contGeral > 0 ? (somaGeral / contGeral).ToString("N2") : "0,00";
-                txt_mediaCientifica.Text = contCien > 0 ? (somaCien / contCien).ToString("N2") : "0,00";
-                txt_mediaTecnica.Text = contTec > 0 ? (somaTec / contTec).ToString("N2") : "0,00";
+                if (contGeral > 0)
+                {
+                    txt_mediaGeral.Text = (somaGeral / contGeral).ToString("N2");
+                }
+                else
+                {
+                    txt_mediaGeral.Text = "0,00";
+                }
+
+                if (contCien > 0)
+                {
+                    txt_mediaCientifica.Text = (somaCien / contCien).ToString("N2");
+                }
+                else
+                {
+                    txt_mediaCientifica.Text = "0,00";
+                }
+
+                if (contTec > 0)
+                {
+                    txt_mediaTecnica.Text = (somaTec / contTec).ToString("N2");
+                }
+                else
+                {
+                    txt_mediaTecnica.Text = "0,00";
+                }
 
                 // 5. Média Final do Aluno
                 double fct = 0;
-                if (txt_notaFCT.Text != "") fct = Convert.ToDouble(txt_notaFCT.Text);
+                if (txt_notaFCT.Text != "")
+                {
+                    fct = Convert.ToDouble(txt_notaFCT.Text);
+                }
 
                 double pap = 0;
-                if (txt_notaPAP.Text != "") pap = Convert.ToDouble(txt_notaPAP.Text);
+                if (txt_notaPAP.Text != "")
+                {
+                    pap = Convert.ToDouble(txt_notaPAP.Text);
+                }
 
-                double mediaDasNotas = contGeral > 0 ? (somaGeral / contGeral) : 0;
+                double mediaDasNotas = 0;
+                if (contGeral > 0)
+                {
+                    mediaDasNotas = somaGeral / contGeral;
+                }
+
                 double divisor = 3; // Média + FCT + PAP
 
                 double mFinal = (mediaDasNotas + fct + pap) / divisor;
@@ -267,23 +365,44 @@ namespace DCGest
 
         private void Btn_Click_Editar(object sender, RoutedEventArgs e)
         {
-            var res = MessageBox.Show("Deseja guardar todas as alterações feitas nas notas deste aluno (incluindo FCT/PAP)?", "Confirmar Alterações", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (res == MessageBoxResult.No) return;
+            MessageBoxResult res = MessageBox.Show("Deseja guardar todas as alterações feitas nas notas deste aluno (incluindo FCT/PAP)?", "Confirmar Alterações", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (res == MessageBoxResult.No)
+            {
+                return;
+            }
 
             try
             {
                 // Lista temporária para agrupar tudo o que deve ser salvo
-                List<NotaModulo> notasParaSalvar = new List<NotaModulo>(listaNotas);
-                
+                List<NotaModulo> notasParaSalvar = new List<NotaModulo>();
+                foreach (NotaModulo n in listaNotas)
+                {
+                    notasParaSalvar.Add(n);
+                }
+
                 // Se temos FCT/PAP, atualizar os valores a partir das caixas de texto e adicionar à lista
                 if (notaFCT != null)
                 {
-                    notaFCT.Valor = string.IsNullOrEmpty(txt_notaFCT.Text) ? null : (int?)Convert.ToInt32(txt_notaFCT.Text);
+                    if (string.IsNullOrEmpty(txt_notaFCT.Text) == false)
+                    {
+                        notaFCT.Valor = Convert.ToInt32(txt_notaFCT.Text);
+                    }
+                    else
+                    {
+                        notaFCT.Valor = null;
+                    }
                     notasParaSalvar.Add(notaFCT);
                 }
                 if (notaPAP != null)
                 {
-                    notaPAP.Valor = string.IsNullOrEmpty(txt_notaPAP.Text) ? null : (int?)Convert.ToInt32(txt_notaPAP.Text);
+                    if (string.IsNullOrEmpty(txt_notaPAP.Text) == false)
+                    {
+                        notaPAP.Valor = Convert.ToInt32(txt_notaPAP.Text);
+                    }
+                    else
+                    {
+                        notaPAP.Valor = null;
+                    }
                     notasParaSalvar.Add(notaPAP);
                 }
 
@@ -311,8 +430,24 @@ namespace DCGest
 
                                 using (MySqlCommand comando = new MySqlCommand(sql, conexao, transacao))
                                 {
-                                    comando.Parameters.AddWithValue("@Valor", (object?)nota.Valor ?? DBNull.Value);
-                                    comando.Parameters.AddWithValue("@Data", (object?)nota.Data_Efetua ?? DBNull.Value);
+                                    if (nota.Valor != null)
+                                    {
+                                        comando.Parameters.AddWithValue("@Valor", nota.Valor);
+                                    }
+                                    else
+                                    {
+                                        comando.Parameters.AddWithValue("@Valor", DBNull.Value);
+                                    }
+
+                                    if (nota.Data_Efetua != null)
+                                    {
+                                        comando.Parameters.AddWithValue("@Data", nota.Data_Efetua);
+                                    }
+                                    else
+                                    {
+                                        comando.Parameters.AddWithValue("@Data", DBNull.Value);
+                                    }
+
                                     comando.Parameters.AddWithValue("@Id", nota.Cod_NotaMod);
 
                                     comando.ExecuteNonQuery();

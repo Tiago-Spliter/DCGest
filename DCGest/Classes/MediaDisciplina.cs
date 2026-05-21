@@ -9,9 +9,9 @@ namespace DCGest.Classes
         public string Situacao { get; set; } = "Em curso";
 
 
-        public MediaDisciplina() 
+        public MediaDisciplina()
         {
-        
+
         }
 
         public MediaDisciplina(string nomeDisciplina, string tipoDisciplina, double media, int modulosRealizados, string situacao)

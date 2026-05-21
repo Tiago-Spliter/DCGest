@@ -68,7 +68,7 @@ namespace DCGest
                                 cmb_curso.SelectedValue = Convert.ToInt32(r["Cod_Curso"]);
                                 cmb_anoletivo.SelectedValue = Convert.ToInt32(r["Cod_Letivo"]);
                                 cmb_orientador.SelectedValue = r["Cod_Ori"] == DBNull.Value ? 0 : Convert.ToInt32(r["Cod_Ori"]);
-                                
+
                                 string estado = r["Estado_Estagio"].ToString();
                                 foreach (System.Windows.Controls.ComboBoxItem item in cmb_estado.Items)
                                 {
@@ -117,10 +117,10 @@ namespace DCGest
                         cmd.Parameters.AddWithValue("@turma", cmb_turma.SelectedValue);
                         cmd.Parameters.AddWithValue("@curso", cmb_curso.SelectedValue);
                         cmd.Parameters.AddWithValue("@estado", ((System.Windows.Controls.ComboBoxItem)cmb_estado.SelectedItem).Content.ToString());
-                        
+
                         int codOri = Convert.ToInt32(cmb_orientador.SelectedValue);
                         cmd.Parameters.AddWithValue("@ori", codOri == 0 ? (object)DBNull.Value : codOri);
-                        
+
                         cmd.Parameters.AddWithValue("@letivo", cmb_anoletivo.SelectedValue);
                         cmd.Parameters.AddWithValue("@id", idAluno);
 

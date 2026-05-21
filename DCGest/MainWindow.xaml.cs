@@ -23,7 +23,7 @@ namespace DCGest
             if (login.ShowDialog() == true)
             {
                 InitializeComponent();
-                
+
                 // Mostrar nome do utilizador logado no cabeçalho (pt-PT)
                 if (Sessao.UtilizadorLogado != null)
                 {

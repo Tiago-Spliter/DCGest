@@ -17,9 +17,9 @@ namespace DCGest.Classes
         public string TipoDisciplina { get; set; } = string.Empty;
 
 
-        public NotaModulo() 
+        public NotaModulo()
         {
-        
+
         }
 
         public NotaModulo(int codNotaMod, int codAluno, int codModulo, int? valor, DateTime? dataEfetua, string ano)

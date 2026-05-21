@@ -10,9 +10,9 @@ namespace DCGest.Classes
         public int Cod_Aut { get; set; }
 
 
-        public DiretorCurso() 
+        public DiretorCurso()
         {
-        
+
         }
 
         public DiretorCurso(int codDC, string nomeDC, int codCurso, int codAut)

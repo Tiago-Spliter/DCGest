@@ -11,9 +11,9 @@ namespace DCGest.Classes
         public int Cod_Curso { get; set; }
 
 
-        public Disciplina() 
+        public Disciplina()
         {
-        
+
         }
 
         public Disciplina(int codDisc, string designacao, string ano, string tipo, int codCurso)

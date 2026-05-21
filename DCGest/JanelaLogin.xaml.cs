@@ -31,13 +31,13 @@ namespace DCGest
                 using (MySqlConnection conn = new MySqlConnection(caminho))
                 {
                     conn.Open();
-                    
+
                     // 1. Procurar na tabela Autenticacao
                     string sql = "SELECT * FROM autenticacao WHERE Utilizador = @user";
                     using (MySqlCommand cmd = new MySqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@user", loginInput);
-                        
+
                         using (MySqlDataReader rAut = cmd.ExecuteReader())
                         {
                             if (rAut.Read())

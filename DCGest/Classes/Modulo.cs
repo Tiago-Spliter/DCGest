@@ -9,9 +9,9 @@ namespace DCGest.Classes
         public int Cod_Disc { get; set; }
 
 
-        public Modulo() 
+        public Modulo()
         {
-        
+
         }
 
         public Modulo(int codModulo, string designacao, int codDisc)

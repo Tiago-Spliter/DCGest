@@ -73,12 +73,15 @@ namespace DCGest
                 }
 
                 MessageBoxResult res = MessageBox.Show("Tem a certeza que deseja alterar a sua palavra-passe?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (res == MessageBoxResult.No) return;
+                if (res == MessageBoxResult.No)
+                {
+                    return;
+                }
 
                 using (MySqlConnection conn = new MySqlConnection(caminho))
                 {
                     conn.Open();
-                    
+
                     // CRIPTOGRAFAR COM BCRYPT
                     string hash = BCrypt.Net.BCrypt.HashPassword(nova);
 
@@ -87,7 +90,7 @@ namespace DCGest
                     {
                         cmd.Parameters.AddWithValue("@hash", hash);
                         cmd.Parameters.AddWithValue("@id", Sessao.UtilizadorLogado!.Cod_Aut);
-                        
+
                         cmd.ExecuteNonQuery();
                     }
                 }

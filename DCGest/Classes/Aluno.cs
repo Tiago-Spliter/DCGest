@@ -21,9 +21,9 @@ namespace DCGest.Classes
         public string Intervalo_Letivo { get; set; } = string.Empty;
 
 
-        public Aluno() 
+        public Aluno()
         {
-        
+
         }
 
         // Construtor Base (BD)
@@ -136,7 +136,7 @@ namespace DCGest.Classes
                     LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma
                     LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo
                     WHERE a.Cod_Aluno = @Cod";
-                
+
                 using (MySqlCommand cmd = new MySqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@Cod", id);

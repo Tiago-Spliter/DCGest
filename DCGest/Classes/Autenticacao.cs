@@ -9,9 +9,9 @@ namespace DCGest.Classes
         public string PalavraPasse { get; set; } = string.Empty;
 
 
-        public Autenticacao() 
+        public Autenticacao()
         {
-        
+
         }
 
         public Autenticacao(int codAut, string utilizador, string palavraPasse)
