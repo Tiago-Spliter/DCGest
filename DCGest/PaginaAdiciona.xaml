@@ -35,19 +35,19 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Margin="0,0,10,0">
                                 <TextBlock Text="Turma" Foreground="#5A6478" Margin="0,0,0,5"/>
-                                <ComboBox Name="cmb_Turma" Height="32" VerticalContentAlignment="Center"/>
+                                <ComboBox Name="cmb_Turma" Height="32" VerticalContentAlignment="Center" DisplayMemberPath="Nome" SelectedValuePath="Cod_Turma"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="10,0,0,0">
                                 <TextBlock Text="Curso" Foreground="#5A6478" Margin="0,0,0,5"/>
-                                <ComboBox Name="cmb_Curso" Height="32" VerticalContentAlignment="Center"/>
+                                <ComboBox Name="cmb_Curso" Height="32" VerticalContentAlignment="Center" DisplayMemberPath="Nome_Curso" SelectedValuePath="Cod_Curso"/>
                             </StackPanel>
                         </Grid>
 
                         <TextBlock Text="Orientador" Foreground="#5A6478" Margin="0,0,0,5"/>
-                        <ComboBox Name="cmb_Orientador" Height="32" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                        <ComboBox Name="cmb_Orientador" Height="32" Margin="0,0,0,15" VerticalContentAlignment="Center" DisplayMemberPath="Nome_Orientador" SelectedValuePath="Cod_Orientador"/>
 
                         <TextBlock Text="Ano Letivo" Foreground="#5A6478" Margin="0,0,0,5"/>
-                        <ComboBox Name="cmb_Ano" Height="32" Margin="0,0,0,30" VerticalContentAlignment="Center"/>
+                        <ComboBox Name="cmb_Ano" Height="32" Margin="0,0,0,30" VerticalContentAlignment="Center" DisplayMemberPath="Intervalo" SelectedValuePath="Cod_Letivo"/>
                     </StackPanel>
 
                     <!-- Painel Orientador -->

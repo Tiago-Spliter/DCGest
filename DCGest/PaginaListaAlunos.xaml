@@ -28,10 +28,10 @@
                     <TextBox Name="txt_nome" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,15"/>
 
                     <TextBlock Text="Turma" Foreground="#5A6478" Margin="0,0,0,5"/>
-                    <ComboBox Name="cmb_turma" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,15"/>
+                    <ComboBox Name="cmb_turma" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,15" DisplayMemberPath="Nome" SelectedValuePath="Cod_Turma"/>
 
                     <TextBlock Text="Orientador" Foreground="#5A6478" Margin="0,0,0,5"/>
-                    <ComboBox Name="cmb_orientador" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,20"/>
+                    <ComboBox Name="cmb_orientador" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,20" DisplayMemberPath="Nome_Orientador" SelectedValuePath="Cod_Orientador"/>
 
                     <Button Content="Aplicar Filtros" Height="38" Background="#293472" Foreground="White" FontWeight="SemiBold" Cursor="Hand" Click="Btn_Click_Filtrar"/>
                     <Button Content="Limpar" Height="38" Margin="0,8,0,0" Background="#F3F5F9" Cursor="Hand" Click="Btn_Click_LimparFiltro"/>
@@ -80,9 +80,9 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Cod" Binding="{Binding Cod_Aluno}" Width="60"/>
                         <DataGridTextColumn Header="Nome" Binding="{Binding Nome_Aluno}" Width="*"/>
-                        <DataGridTextColumn Header="Turma" Binding="{Binding Turma}" Width="80"/>
+                        <DataGridTextColumn Header="Turma" Binding="{Binding Nome_Turma}" Width="80"/>
                         <DataGridTextColumn Header="Curso" Binding="{Binding Nome_Curso}" Width="200"/>
-                        <DataGridTextColumn Header="Ano" Binding="{Binding Ano_Letivo}" Width="100"/>
+                        <DataGridTextColumn Header="Ano" Binding="{Binding Intervalo_Letivo}" Width="100"/>
                         <DataGridTextColumn Header="Estágio" Binding="{Binding Estado_Estagio}" Width="120"/>
                         <DataGridTextColumn Header="Orientador" Binding="{Binding Nome_Orientador}" Width="180"/>
                     </DataGrid.Columns>
@@ -102,10 +102,10 @@
                     <TextBlock Text="Escolha o Curso que deseja" FontSize="28" FontWeight="Bold" Foreground="#1A2E52" Margin="0,0,0,30"/>
                     
                     <TextBlock Text="Ano Letivo" Foreground="#5A6478" Margin="0,0,0,5"/>
-                    <ComboBox Name="cmb_anoletivo" Height="35" FontSize="15" VerticalContentAlignment="Center" Margin="0,0,0,20"/>
+                    <ComboBox Name="cmb_anoletivo" Height="35" FontSize="15" VerticalContentAlignment="Center" Margin="0,0,0,20" DisplayMemberPath="Intervalo" SelectedValuePath="Cod_Letivo"/>
 
                     <TextBlock Text="Curso" Foreground="#5A6478" Margin="0,0,0,5"/>
-                    <ComboBox Name="cmb_curso" Height="35" FontSize="15" VerticalContentAlignment="Center" Margin="0,0,0,40"/>
+                    <ComboBox Name="cmb_curso" Height="35" FontSize="15" VerticalContentAlignment="Center" Margin="0,0,0,40" DisplayMemberPath="Nome_Curso" SelectedValuePath="Cod_Curso"/>
 
                     <Button Content="Carregar Dados" Height="45" FontSize="16" FontWeight="Bold" Foreground="White" Background="#293472" BorderThickness="0" Cursor="Hand" Click="Btn_Click_Continuar"/>
                 </StackPanel>
