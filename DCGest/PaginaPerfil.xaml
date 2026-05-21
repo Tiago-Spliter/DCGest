@@ -1,0 +1,55 @@
+<Page x:Class="DCGest.PaginaPerfil"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:DCGest"
+      mc:Ignorable="d" 
+      d:DesignHeight="745" d:DesignWidth="1290"
+      Title="Perfil do Utilizador" Background="#F3F5F9" FontFamily="Segoe UI">
+
+    <Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            
+            <TextBlock Text="O Seu Perfil" FontSize="32" FontWeight="Bold" Foreground="#1A2E52" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="450"/>
+                    <ColumnDefinition Width="450"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Informações do Diretor -->
+                <Border Grid.Column="0" Background="White" CornerRadius="20" Padding="40" BorderBrush="#E0E6ED" BorderThickness="1" Margin="0,0,15,0">
+                    <StackPanel>
+                        <TextBlock Text="Dados Pessoais" FontSize="20" FontWeight="Bold" Foreground="#293472" Margin="0,0,0,25"/>
+                        
+                        <TextBlock Text="Nome Completo" Foreground="#5A6478" Margin="0,0,0,5"/>
+                        <TextBox Name="txt_nome" IsReadOnly="True" Height="35" VerticalContentAlignment="Center" Margin="0,0,0,20" Background="#F8FAFC"/>
+
+                        <TextBlock Text="Utilizador (Login)" Foreground="#5A6478" Margin="0,0,0,5"/>
+                        <TextBox Name="txt_login" IsReadOnly="True" Height="35" VerticalContentAlignment="Center" Margin="0,0,0,20" Background="#F8FAFC"/>
+
+                        <TextBlock Text="Curso Associado" Foreground="#5A6478" Margin="0,0,0,5"/>
+                        <TextBox Name="txt_curso" IsReadOnly="True" Height="35" VerticalContentAlignment="Center" Background="#F8FAFC"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Alterar Password -->
+                <Border Grid.Column="1" Background="White" CornerRadius="20" Padding="40" BorderBrush="#E0E6ED" BorderThickness="1" Margin="15,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Segurança" FontSize="20" FontWeight="Bold" Foreground="#293472" Margin="0,0,0,25"/>
+
+                        <TextBlock Text="Nova Palavra-Passe" Foreground="#5A6478" Margin="0,0,0,5"/>
+                        <PasswordBox Name="txt_novaPass" Height="35" VerticalContentAlignment="Center" Margin="0,0,0,20"/>
+
+                        <TextBlock Text="Confirmar Palavra-Passe" Foreground="#5A6478" Margin="0,0,0,5"/>
+                        <PasswordBox Name="txt_confirmaPass" Height="35" VerticalContentAlignment="Center" Margin="0,0,0,30"/>
+
+                        <Button Content="Atualizar Palavra-Passe" Height="45" Background="#293472" Foreground="White" FontWeight="Bold" Cursor="Hand" Click="Btn_Click_AtualizarPass"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </Grid>
+</Page>

@@ -49,6 +49,17 @@
             <Border Grid.Row="0" Background="White" BorderBrush="#E0E6ED" BorderThickness="0,0,0,1">
                 <Grid Margin="30,0">
                     <TextBlock Text="Bem-vindo ao Sistema de Gestão" VerticalAlignment="Center" FontSize="18" Foreground="#5A6478" FontWeight="Medium"/>
+                    
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Name="btn_Perfil" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="Btn_Click_Perfil">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="40" Height="40" Background="#F3F5F9" CornerRadius="20">
+                                    <TextBlock Text="👤" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"/>
+                                </Border>
+                                <TextBlock Name="lbl_UserNome" Text="Utilizador" VerticalAlignment="Center" Margin="12,0,0,0" FontWeight="SemiBold" Foreground="#1A2E52"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
 

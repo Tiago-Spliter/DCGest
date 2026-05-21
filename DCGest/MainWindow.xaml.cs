@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using DCGest.Classes;
 
 namespace DCGest
 {
@@ -22,6 +23,13 @@ namespace DCGest
             if (login.ShowDialog() == true)
             {
                 InitializeComponent();
+                
+                // Mostrar nome do utilizador logado no cabeçalho (pt-PT)
+                if (Sessao.UtilizadorLogado != null)
+                {
+                    lbl_UserNome.Text = Sessao.UtilizadorLogado.Nome_DC;
+                }
+
                 frm.Content = new InformacaoInicial();
             }
             else
@@ -46,6 +54,12 @@ namespace DCGest
         {
             PaginaAdiciona paginaAdiciona = new PaginaAdiciona();
             frm.Content = paginaAdiciona;
+        }
+
+        private void Btn_Click_Perfil(object sender, RoutedEventArgs e)
+        {
+            PaginaPerfil paginaPerfil = new PaginaPerfil();
+            frm.Content = paginaPerfil;
         }
     }
 }
