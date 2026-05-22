@@ -45,7 +45,10 @@ namespace DCGest
 
         private void Cmb_Tipo_Seleciona(object sender, SelectionChangedEventArgs e)
         {
-            if (painelAluno == null || painelOrientador == null || painelDC == null) return;
+            if (painelAluno == null || painelOrientador == null || painelDC == null)
+            {
+                return;
+            }
 
             // Reset
             painelAluno.Visibility = Visibility.Collapsed;
@@ -74,17 +77,26 @@ namespace DCGest
                 listaTurmas = Turma.ObterTodas();
                 cmb_Turma.ItemsSource = null;
                 cmb_Turma.ItemsSource = listaTurmas;
-                if (listaTurmas.Count > 0) cmb_Turma.SelectedIndex = 0;
+                if (listaTurmas.Count > 0)
+                {
+                    cmb_Turma.SelectedIndex = 0;
+                }
 
                 // Curso
                 listaCursos = Curso.ObterTodos();
                 cmb_Curso.ItemsSource = null;
                 cmb_Curso.ItemsSource = listaCursos;
-                if (listaCursos.Count > 0) cmb_Curso.SelectedIndex = 0;
+                if (listaCursos.Count > 0)
+                {
+                    cmb_Curso.SelectedIndex = 0;
+                }
 
                 cmb_CursoDC.ItemsSource = null;
                 cmb_CursoDC.ItemsSource = listaCursos;
-                if (listaCursos.Count > 0) cmb_CursoDC.SelectedIndex = 0;
+                if (listaCursos.Count > 0)
+                {
+                    cmb_CursoDC.SelectedIndex = 0;
+                }
 
                 // Orientador
                 listaOrientadores = Orientador.ObterTodos();
@@ -97,7 +109,10 @@ namespace DCGest
                 listaAnos = AnoLetivo.ObterTodos();
                 cmb_Ano.ItemsSource = null;
                 cmb_Ano.ItemsSource = listaAnos;
-                if (listaAnos.Count > 0) cmb_Ano.SelectedIndex = 0;
+                if (listaAnos.Count > 0)
+                {
+                    cmb_Ano.SelectedIndex = 0;
+                }
             }
             catch (Exception ex)
             {

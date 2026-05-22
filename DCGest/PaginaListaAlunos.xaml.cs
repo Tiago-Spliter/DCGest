@@ -115,35 +115,46 @@ namespace DCGest
                 {
                     conexao.Open();
 
-                    StringBuilder sql_Alunos = new StringBuilder(@"
-                        SELECT a.*, c.Nome_Curso, o.Nome_Orientador, t.Nome as Nome_Turma, al.Intervalo as Intervalo_Letivo
-                        FROM aluno a
-                        LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso
-                        LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador
-                        LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma
-                        LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo
-                        WHERE 1=1");
+                    string sql_Alunos = "SELECT a.*, c.Nome_Curso, o.Nome_Orientador, t.Nome as Nome_Turma, al.Intervalo as Intervalo_Letivo " +
+                                       "FROM aluno a " +
+                                       "LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso " +
+                                       "LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador " +
+                                       "LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma " +
+                                       "LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo " +
+                                       "WHERE 1=1";
 
-                    if (cmb_anoletivo.SelectedValue != null && (int)cmb_anoletivo.SelectedValue != 0)
+                    if (cmb_anoletivo.SelectedValue != null)
                     {
-                        sql_Alunos.Append(" AND a.Cod_Letivo = @letivo");
-                    }
-
-                    if (cmb_curso.SelectedValue != null && (int)cmb_curso.SelectedValue != 0)
-                    {
-                        sql_Alunos.Append(" AND a.Cod_Curso = @curso");
-                    }
-
-                    using (MySqlCommand comando = new MySqlCommand(sql_Alunos.ToString(), conexao))
-                    {
-                        if (cmb_anoletivo.SelectedValue != null && (int)cmb_anoletivo.SelectedValue != 0)
+                        if ((int)cmb_anoletivo.SelectedValue != 0)
                         {
-                            comando.Parameters.AddWithValue("@letivo", cmb_anoletivo.SelectedValue);
+                            sql_Alunos = sql_Alunos + " AND a.Cod_Letivo = @letivo";
+                        }
+                    }
+
+                    if (cmb_curso.SelectedValue != null)
+                    {
+                        if ((int)cmb_curso.SelectedValue != 0)
+                        {
+                            sql_Alunos = sql_Alunos + " AND a.Cod_Curso = @curso";
+                        }
+                    }
+
+                    using (MySqlCommand comando = new MySqlCommand(sql_Alunos, conexao))
+                    {
+                        if (cmb_anoletivo.SelectedValue != null)
+                        {
+                            if ((int)cmb_anoletivo.SelectedValue != 0)
+                            {
+                                comando.Parameters.AddWithValue("@letivo", cmb_anoletivo.SelectedValue);
+                            }
                         }
 
-                        if (cmb_curso.SelectedValue != null && (int)cmb_curso.SelectedValue != 0)
+                        if (cmb_curso.SelectedValue != null)
                         {
-                            comando.Parameters.AddWithValue("@curso", cmb_curso.SelectedValue);
+                            if ((int)cmb_curso.SelectedValue != 0)
+                            {
+                                comando.Parameters.AddWithValue("@curso", cmb_curso.SelectedValue);
+                            }
                         }
 
                         listaAlunos.Clear();
@@ -152,9 +163,19 @@ namespace DCGest
                         {
                             while (leitor.Read())
                             {
-                                int? codOri = leitor["Cod_Ori"] == DBNull.Value ? null : (int?)Convert.ToInt32(leitor["Cod_Ori"]);
+                                int? codOri = null;
+                                if (leitor["Cod_Ori"] != DBNull.Value)
+                                {
+                                    codOri = Convert.ToInt32(leitor["Cod_Ori"]);
+                                }
 
-                                listaAlunos.Add(new Aluno(
+                                string nomeOri = "N/A";
+                                if (leitor["Nome_Orientador"] != DBNull.Value)
+                                {
+                                    nomeOri = leitor["Nome_Orientador"].ToString();
+                                }
+
+                                Aluno a = new Aluno(
                                     Convert.ToInt32(leitor["Cod_Aluno"]),
                                     leitor["Nome_Aluno"].ToString(),
                                     Convert.ToInt32(leitor["Cod_Turma"]),
@@ -163,10 +184,12 @@ namespace DCGest
                                     codOri,
                                     Convert.ToInt32(leitor["Cod_Letivo"]),
                                     leitor["Nome_Curso"].ToString(),
-                                    leitor["Nome_Orientador"]?.ToString() ?? "N/A",
+                                    nomeOri,
                                     leitor["Nome_Turma"].ToString(),
                                     leitor["Intervalo_Letivo"].ToString()
-                                ));
+                                );
+
+                                listaAlunos.Add(a);
                             }
                         }
 
@@ -189,55 +212,66 @@ namespace DCGest
                 {
                     conexao.Open();
 
-                    StringBuilder Filtro = new StringBuilder(@"
-                        SELECT a.*, c.Nome_Curso, o.Nome_Orientador, t.Nome as Nome_Turma, al.Intervalo as Intervalo_Letivo
-                        FROM aluno a
-                        LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso
-                        LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador
-                        LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma
-                        LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo
-                        WHERE 1=1");
+                    string sql_Filtro = "SELECT a.*, c.Nome_Curso, o.Nome_Orientador, t.Nome as Nome_Turma, al.Intervalo as Intervalo_Letivo " +
+                                       "FROM aluno a " +
+                                       "LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso " +
+                                       "LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador " +
+                                       "LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma " +
+                                       "LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo " +
+                                       "WHERE 1=1";
 
-                    if (txt_codigo.Text != string.Empty)
+                    if (txt_codigo.Text != "")
                     {
-                        Filtro.Append(" AND a.Cod_Aluno = @cod");
+                        sql_Filtro = sql_Filtro + " AND a.Cod_Aluno = @cod";
                     }
 
-                    if (txt_nome.Text != string.Empty)
+                    if (txt_nome.Text != "")
                     {
-                        Filtro.Append(" AND a.Nome_Aluno LIKE @nome");
+                        sql_Filtro = sql_Filtro + " AND a.Nome_Aluno LIKE @nome";
                     }
 
-                    if (cmb_turma.SelectedValue != null && (int)cmb_turma.SelectedValue != 0)
+                    if (cmb_turma.SelectedValue != null)
                     {
-                        Filtro.Append(" AND a.Cod_Turma = @turma");
+                        if ((int)cmb_turma.SelectedValue != 0)
+                        {
+                            sql_Filtro = sql_Filtro + " AND a.Cod_Turma = @turma";
+                        }
                     }
 
-                    if (cmb_orientador.SelectedValue != null && (int)cmb_orientador.SelectedValue != 0)
+                    if (cmb_orientador.SelectedValue != null)
                     {
-                        Filtro.Append(" AND a.Cod_Ori = @orientador");
+                        if ((int)cmb_orientador.SelectedValue != 0)
+                        {
+                            sql_Filtro = sql_Filtro + " AND a.Cod_Ori = @orientador";
+                        }
                     }
 
-                    using (MySqlCommand comando = new MySqlCommand(Filtro.ToString(), conexao))
+                    using (MySqlCommand comando = new MySqlCommand(sql_Filtro, conexao))
                     {
-                        if (txt_codigo.Text != string.Empty)
+                        if (txt_codigo.Text != "")
                         {
                             comando.Parameters.AddWithValue("@cod", txt_codigo.Text);
                         }
 
-                        if (txt_nome.Text != string.Empty)
+                        if (txt_nome.Text != "")
                         {
                             comando.Parameters.AddWithValue("@nome", "%" + txt_nome.Text + "%");
                         }
 
-                        if (cmb_turma.SelectedValue != null && (int)cmb_turma.SelectedValue != 0)
+                        if (cmb_turma.SelectedValue != null)
                         {
-                            comando.Parameters.AddWithValue("@turma", cmb_turma.SelectedValue);
+                            if ((int)cmb_turma.SelectedValue != 0)
+                            {
+                                comando.Parameters.AddWithValue("@turma", cmb_turma.SelectedValue);
+                            }
                         }
 
-                        if (cmb_orientador.SelectedValue != null && (int)cmb_orientador.SelectedValue != 0)
+                        if (cmb_orientador.SelectedValue != null)
                         {
-                            comando.Parameters.AddWithValue("@orientador", cmb_orientador.SelectedValue);
+                            if ((int)cmb_orientador.SelectedValue != 0)
+                            {
+                                comando.Parameters.AddWithValue("@orientador", cmb_orientador.SelectedValue);
+                            }
                         }
 
                         listaAlunos.Clear();
@@ -246,9 +280,19 @@ namespace DCGest
                         {
                             while (leitor.Read())
                             {
-                                int? codOri = leitor["Cod_Ori"] == DBNull.Value ? null : (int?)Convert.ToInt32(leitor["Cod_Ori"]);
+                                int? codOri = null;
+                                if (leitor["Cod_Ori"] != DBNull.Value)
+                                {
+                                    codOri = Convert.ToInt32(leitor["Cod_Ori"]);
+                                }
 
-                                listaAlunos.Add(new Aluno(
+                                string nomeOri = "N/A";
+                                if (leitor["Nome_Orientador"] != DBNull.Value)
+                                {
+                                    nomeOri = leitor["Nome_Orientador"].ToString();
+                                }
+
+                                Aluno a = new Aluno(
                                     Convert.ToInt32(leitor["Cod_Aluno"]),
                                     leitor["Nome_Aluno"].ToString(),
                                     Convert.ToInt32(leitor["Cod_Turma"]),
@@ -257,10 +301,12 @@ namespace DCGest
                                     codOri,
                                     Convert.ToInt32(leitor["Cod_Letivo"]),
                                     leitor["Nome_Curso"].ToString(),
-                                    leitor["Nome_Orientador"]?.ToString() ?? "N/A",
+                                    nomeOri,
                                     leitor["Nome_Turma"].ToString(),
                                     leitor["Intervalo_Letivo"].ToString()
-                                ));
+                                );
+
+                                listaAlunos.Add(a);
                             }
                         }
 
@@ -276,31 +322,6 @@ namespace DCGest
         }
 
 
-
-        private void Btn_Click_EditarAluno(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (dg_alunos.SelectedItem != null)
-                {
-                    Aluno selecionado = (Aluno)dg_alunos.SelectedItem;
-
-                    JanelaEditaAluno janela = new JanelaEditaAluno(selecionado.Cod_Aluno);
-                    if (janela.ShowDialog() == true)
-                    {
-                        CarregarAlunos(); // Atualiza a lista se houve alteração
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Por favor, selecione um aluno na lista para editar.");
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Erro ao abrir edição: " + ex.Message);
-            }
-        }
 
         private void Btn_Click_GerarPDF(object sender, RoutedEventArgs e)
         {
@@ -324,6 +345,31 @@ namespace DCGest
             catch (Exception ex)
             {
                 MessageBox.Show("Erro ao gerar PDF: " + ex.Message);
+            }
+        }
+
+        private void Btn_Click_EditarAluno(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (dg_alunos.SelectedItem != null)
+                {
+                    Aluno selecionado = (Aluno)dg_alunos.SelectedItem;
+
+                    JanelaEditaAluno janela = new JanelaEditaAluno(selecionado.Cod_Aluno);
+                    if (janela.ShowDialog() == true)
+                    {
+                        CarregarAlunos(); // Atualiza a lista se houve alteração
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Por favor, selecione um aluno na lista para editar.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao abrir edição: " + ex.Message);
             }
         }
 
