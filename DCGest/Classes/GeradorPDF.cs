@@ -12,26 +12,27 @@ namespace DCGest.Classes
     {
         private string connectionString = BD.CaminhoBD;
 
-        // PALETE DE CORES REFINADA (Sincronizada com Cabeçalhos)
+        // PALETE DE CORES SINCRONIZADA (Laranja, Verde, Vermelho)
         
-        // TONS DE REFERÊNCIA (Para as células M1-M19)
+        // TONS DE REFERÊNCIA (Para as células M1-M19 - Médios para não precisar de branco)
         BaseColor corLaranjaMedio = new BaseColor(250, 191, 143);  // 1º Ano
         BaseColor corVerdeMedio = new BaseColor(170, 210, 140);    // 2º Ano
-        BaseColor corVermelhoMedio = new BaseColor(240, 160, 160); // 3º Ano (Vermelho suave)
+        BaseColor corVermelhoMedio = new BaseColor(230, 150, 150);  // 3º Ano (Vermelho suave)
 
-        // TONS DE CABEÇALHO (Rodapé)
+        // TONS DE CABEÇALHO (Rodapé - Escuros)
         BaseColor corLaranjaEscuro = new BaseColor(228, 108, 10);  
         BaseColor corVerdeEscuro = new BaseColor(118, 147, 60);    
-        BaseColor corVermelhoEscuro = new BaseColor(180, 40, 40);  // Vermelho carregado
+        BaseColor corVermelhoEscuro = new BaseColor(148, 54, 52);  // Vermelho escuro
 
         // TONS DE COMPONENTE (Coluna 1)
-        BaseColor corRosaCarregado = new BaseColor(245, 140, 170);  // Sociocultural (Mais rosa)
-        BaseColor corVerdeClaroComponente = new BaseColor(210, 235, 190); // Técnica (Verde menos carregado)
+        BaseColor corRosaCarregado = new BaseColor(245, 140, 170);  // Sociocultural
+        BaseColor corVerdeClaroComponente = new BaseColor(210, 235, 190); // Técnica
 
         // CORES ESPECIAIS
         BaseColor corFCT = new BaseColor(183, 222, 232);          
         BaseColor corHeaderGrelha = new BaseColor(211, 211, 211); 
         BaseColor corFinalCurso = new BaseColor(255, 255, 0);     
+        BaseColor corRosaMuitoClaro = new BaseColor(255, 230, 240); 
 
         public string GerarRelatorioAluno(Aluno aluno)
         {
@@ -56,31 +57,51 @@ namespace DCGest.Classes
             Font fBold = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 7, BaseColor.BLACK);
             Font fTitle = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.BLACK);
 
-            // 1. CABEÇALHO
-            PdfPTable tabHeader = new PdfPTable(2);
+            // 1. CABEÇALHO ESTILO TESTE DE AVALIAÇÃO (Alinhado e Boxed)
+            PdfPTable tabHeader = new PdfPTable(3);
             tabHeader.WidthPercentage = 100;
-            tabHeader.SetWidths(new float[] { 1, 1 });
+            tabHeader.SetWidths(new float[] { 3, 1, 1 }); // Nome ganha mais espaço
 
+            // Título Principal
             PdfPCell cellTitle = new PdfPCell(new Phrase("REGISTO BIOGRÁFICO DE AVALIAÇÃO", fTitle));
-            cellTitle.Colspan = 2; cellTitle.Border = 0; cellTitle.PaddingBottom = 10; cellTitle.HorizontalAlignment = Element.ALIGN_CENTER;
+            cellTitle.Colspan = 3; 
+            cellTitle.Border = 0; 
+            cellTitle.HorizontalAlignment = Element.ALIGN_CENTER; 
+            cellTitle.PaddingBottom = 15;
             tabHeader.AddCell(cellTitle);
 
-            PdfPCell cellEsq = new PdfPCell(); cellEsq.Border = 0;
-            cellEsq.AddElement(new Phrase("ALUNO: " + alunoCompleto.Nome_Aluno.ToUpper(), fBold));
-            cellEsq.AddElement(new Phrase("Nº PROCESSO: " + alunoCompleto.Cod_Aluno, fBase));
-            cellEsq.AddElement(new Phrase("CURSO: " + alunoCompleto.Nome_Curso, fBase));
-            tabHeader.AddCell(cellEsq);
+            // Linha 1: Nome, N.º e Turma
+            PdfPCell cNome = new PdfPCell(new Phrase("ALUNO: " + alunoCompleto.Nome_Aluno.ToUpper(), fBold));
+            cNome.Padding = 5; 
+            tabHeader.AddCell(cNome);
 
-            PdfPCell cellDir = new PdfPCell(); cellDir.Border = 0; cellDir.HorizontalAlignment = Element.ALIGN_RIGHT;
-            Paragraph pDir = new Paragraph();
-            pDir.Alignment = Element.ALIGN_RIGHT;
-            pDir.Add(new Phrase("TURMA: " + alunoCompleto.Nome_Turma + "\n", fBase));
-            pDir.Add(new Phrase("ANO LETIVO: " + alunoCompleto.Intervalo_Letivo + "\n", fBase));
-            pDir.Add(new Phrase("ORIENTADOR: " + alunoCompleto.Nome_Orientador, fBase));
-            cellDir.AddElement(pDir);
-            tabHeader.AddCell(cellDir);
+            PdfPCell cProc = new PdfPCell(new Phrase("N.º PROC: " + alunoCompleto.Cod_Aluno, fBase));
+            cProc.Padding = 5; 
+            cProc.HorizontalAlignment = Element.ALIGN_CENTER;
+            tabHeader.AddCell(cProc);
+
+            PdfPCell cTurma = new PdfPCell(new Phrase("TURMA: " + alunoCompleto.Nome_Turma, fBase));
+            cTurma.Padding = 5; 
+            cTurma.HorizontalAlignment = Element.ALIGN_CENTER;
+            tabHeader.AddCell(cTurma);
+
+            // Linha 2: Curso, Ano Letivo e Orientador
+            PdfPCell cCurso = new PdfPCell(new Phrase("CURSO: " + alunoCompleto.Nome_Curso, fBase));
+            cCurso.Padding = 5; 
+            tabHeader.AddCell(cCurso);
+
+            PdfPCell cAno = new PdfPCell(new Phrase("ANO LETIVO: " + alunoCompleto.Intervalo_Letivo, fBase));
+            cAno.Padding = 5; 
+            cAno.HorizontalAlignment = Element.ALIGN_CENTER;
+            tabHeader.AddCell(cAno);
+
+            PdfPCell cOri = new PdfPCell(new Phrase("ORIENTADOR: " + alunoCompleto.Nome_Orientador, fBase));
+            cOri.Padding = 5; 
+            cOri.HorizontalAlignment = Element.ALIGN_CENTER;
+            tabHeader.AddCell(cOri);
 
             doc.Add(tabHeader);
+            doc.Add(new Paragraph(" ")); // Espaçamento após o cabeçalho
 
             // 2. GRELHA DE MÓDULOS
             PdfPTable gridM = new PdfPTable(20);
@@ -119,36 +140,52 @@ namespace DCGest.Classes
             foreach (string nomeDisc in nomesDisciplinas)
             {
                 string tipo = discAgrupadas[nomeDisc][0].TipoDisciplina.ToLower();
-                if (tipo.Contains("cultural")) discSocioculturais.Add(nomeDisc);
-                else if (tipo.Contains("científica")) discCientificas.Add(nomeDisc);
-                else if (tipo.Contains("técnica")) discTecnicas.Add(nomeDisc);
+                if (tipo.Contains("cultural"))
+                {
+                    discSocioculturais.Add(nomeDisc);
+                }
+                else if (tipo.Contains("científica"))
+                {
+                    discCientificas.Add(nomeDisc);
+                }
+                else if (tipo.Contains("técnica"))
+                {
+                    discTecnicas.Add(nomeDisc);
+                }
             }
 
-            discSocioculturais.Sort(); discCientificas.Sort(); discTecnicas.Sort();
+            discSocioculturais.Sort(); 
+            discCientificas.Sort(); 
+            discTecnicas.Sort();
+            
             List<string> ordemFinal = new List<string>();
-            ordemFinal.AddRange(discSocioculturais); ordemFinal.AddRange(discCientificas); ordemFinal.AddRange(discTecnicas);
+            ordemFinal.AddRange(discSocioculturais); 
+            ordemFinal.AddRange(discCientificas); 
+            ordemFinal.AddRange(discTecnicas);
 
             foreach (string nomeDisc in ordemFinal)
             {
                 string tipo = discAgrupadas[nomeDisc][0].TipoDisciplina;
-                
-                BaseColor corFundoNome = BaseColor.WHITE;
+                BaseColor bgComp = BaseColor.WHITE;
                 if (tipo.ToLower().Contains("cultural"))
                 {
-                    corFundoNome = corRosaCarregado; // Rosa mais forte
+                    bgComp = corRosaCarregado;
                 }
                 else if (tipo.ToLower().Contains("técnica"))
                 {
-                    corFundoNome = corVerdeClaroComponente; // Verde mais suave
+                    bgComp = corVerdeClaroComponente;
                 }
 
-                gridM.AddCell(new PdfPCell(new Phrase(nomeDisc, fBase)) { BackgroundColor = corFundoNome, Padding = 2 });
+                gridM.AddCell(new PdfPCell(new Phrase(nomeDisc, fBase)) { BackgroundColor = bgComp, Padding = 2 });
 
                 NotaModulo[] colunas = new NotaModulo[20];
                 foreach (NotaModulo m in discAgrupadas[nomeDisc])
                 {
                     int nMod = ExtrairNumeroModulo(m.NomeModulo);
-                    if (nMod >= 1 && nMod <= 19) colunas[nMod] = m;
+                    if (nMod >= 1 && nMod <= 19)
+                    {
+                        colunas[nMod] = m;
+                    }
                 }
 
                 for (int i = 1; i <= 19; i++)
@@ -217,6 +254,9 @@ namespace DCGest.Classes
             int totalModulos = 0;
             int tecnicasModulos = 0;
 
+            double somaAno = 0;
+            int contaAno = 0;
+
             foreach (NotaModulo n in notas)
             {
                 if (n.Ano == ano)
@@ -225,7 +265,16 @@ namespace DCGest.Classes
                     {
                         notasAno.Add(n);
                         totalModulos = totalModulos + 1;
-                        if (n.TipoDisciplina.ToLower().Contains("técnica")) tecnicasModulos = tecnicasModulos + 1;
+                        if (n.TipoDisciplina.ToLower().Contains("técnica"))
+                        {
+                            tecnicasModulos = tecnicasModulos + 1;
+                        }
+
+                        if (n.Valor != null && n.Valor > 0)
+                        {
+                            somaAno = somaAno + (double)n.Valor;
+                            contaAno = contaAno + 1;
+                        }
                     }
                 }
             }
@@ -245,12 +294,18 @@ namespace DCGest.Classes
             data.AddCell(new PdfPCell(new Phrase(ano.ToUpper(), fBold)) { BackgroundColor = cHeader, Colspan = 4, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
             
             string[] subH = { "MÉDIA", "MÓD NR", "SIT.", "TEC" };
-            foreach(string s in subH) data.AddCell(new PdfPCell(new Phrase(s, fBold)) { BackgroundColor = corHeaderGrelha, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
+            foreach(string s in subH) 
+            {
+                data.AddCell(new PdfPCell(new Phrase(s, fBold)) { BackgroundColor = corHeaderGrelha, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
+            }
 
             Dictionary<string, List<NotaModulo>> grupos = new Dictionary<string, List<NotaModulo>>();
             foreach (NotaModulo n in notasAno)
             {
-                if (grupos.ContainsKey(n.NomeDisciplina) == false) grupos.Add(n.NomeDisciplina, new List<NotaModulo>());
+                if (grupos.ContainsKey(n.NomeDisciplina) == false)
+                {
+                    grupos.Add(n.NomeDisciplina, new List<NotaModulo>());
+                }
                 grupos[n.NomeDisciplina].Add(n);
             }
 
@@ -280,8 +335,14 @@ namespace DCGest.Classes
 
                 BaseColor bgCor = BaseColor.WHITE;
                 string tipo = notasDisc[0].TipoDisciplina.ToLower();
-                if (tipo.Contains("cultural")) bgCor = corRosaCarregado;
-                else if (tipo.Contains("técnica")) bgCor = corVerdeClaroComponente;
+                if (tipo.Contains("cultural"))
+                {
+                    bgCor = corRosaMuitoClaro;
+                }
+                else if (tipo.Contains("técnica"))
+                {
+                    bgCor = corVerdeClaroComponente;
+                }
 
                 data.AddCell(new PdfPCell(new Phrase(media.ToString("N1"), fBase)) { BackgroundColor = bgCor, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
                 data.AddCell(new PdfPCell(new Phrase(countRealizados.ToString(), fBase)) { BackgroundColor = bgCor, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
@@ -289,6 +350,24 @@ namespace DCGest.Classes
                 data.AddCell(new PdfPCell(new Phrase("", fBase)) { BackgroundColor = bgCor, Padding = 2 });
             }
             cell.AddElement(data);
+
+            // MÉDIA DO ANO
+            double mediaAno = 0;
+            if (contaAno > 0)
+            {
+                mediaAno = somaAno / (double)contaAno;
+            }
+
+            PdfPTable tabMediaAnual = new PdfPTable(2);
+            tabMediaAnual.WidthPercentage = 100;
+            tabMediaAnual.SpacingBefore = 5;
+            tabMediaAnual.SetWidths(new float[] { 2, 1 });
+
+            tabMediaAnual.AddCell(new PdfPCell(new Phrase("MÉDIA DO ANO", fBold)) { BackgroundColor = cHeader, Padding = 3 });
+            tabMediaAnual.AddCell(new PdfPCell(new Phrase(mediaAno.ToString("N1"), fBold)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 3 });
+
+            cell.AddElement(tabMediaAnual);
+
             return cell;
         }
 
@@ -301,15 +380,27 @@ namespace DCGest.Classes
 
         private BaseColor GetCorAnoIntensa(string ano)
         {
-            if (ano.Contains("1")) return corLaranjaMedio;
-            if (ano.Contains("2")) return corVerdeMedio;
+            if (ano.Contains("1"))
+            {
+                return corLaranjaMedio;
+            }
+            if (ano.Contains("2"))
+            {
+                return corVerdeMedio;
+            }
             return corVermelhoMedio;
         }
 
         private BaseColor GetCorComponente(string tipo)
         {
-            if (tipo.ToLower().Contains("técnica")) return corVerdeClaroComponente;
-            if (tipo.ToLower().Contains("científica")) return BaseColor.WHITE;
+            if (tipo.ToLower().Contains("técnica"))
+            {
+                return corVerdeClaroComponente;
+            }
+            if (tipo.ToLower().Contains("científica"))
+            {
+                return BaseColor.WHITE;
+            }
             return corRosaCarregado;
         }
 
@@ -331,7 +422,11 @@ namespace DCGest.Classes
                     if (n.Valor != null && n.Valor > 0) { soma = soma + (double)n.Valor; conta = conta + 1; }
                 }
             }
-            return conta > 0 ? (soma / (double)conta).ToString("N1") : "0,0";
+            if (conta > 0)
+            {
+                return (soma / (double)conta).ToString("N1");
+            }
+            return "0,0";
         }
 
         private List<NotaModulo> ObterTodasNotas(int codAluno)
