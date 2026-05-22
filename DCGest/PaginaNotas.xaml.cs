@@ -81,8 +81,8 @@ namespace DCGest
                 {
                     conexao.Open();
 
-                    // Query que busca tudo do aluno, incluindo as de tipo 'final'
-                    string sql = @"SELECT n.Cod_NotaMod, n.Ano, m.Designacao AS Modulo, d.Designacao AS Disciplina, d.Tipo, n.Valor, n.Data_Efetua 
+                    // Query que busca o Ano diretamente da tabela Disciplina para fidelidade total aos dados
+                    string sql = @"SELECT n.Cod_NotaMod, d.Ano AS AnoDisciplina, m.Designacao AS Modulo, d.Designacao AS Disciplina, d.Tipo, n.Valor, n.Data_Efetua 
                                    FROM NotaMod n 
                                    INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo 
                                    INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc 
@@ -99,7 +99,7 @@ namespace DCGest
                             {
                                 string tipo = leitor["Tipo"].ToString();
                                 string discNome = leitor["Disciplina"].ToString();
-                                string anoNota = leitor["Ano"].ToString();
+                                string anoNota = leitor["AnoDisciplina"].ToString() + "º Ano";
 
                                 int? valorDaNota = null;
                                 if (leitor["Valor"] != DBNull.Value)
@@ -131,29 +131,6 @@ namespace DCGest
                     }
                 }
 
-                // DISTRIBUIÇÃO DINÂMICA DE ANOS PARA CORRIGIR A BASE DE DADOS
-                foreach (NotaModulo n in todasAsNotas)
-                {
-                    if (n.TipoDisciplina.ToLower().Contains("final") == false)
-                    {
-                        if (n.NomeDisciplina.ToLower().Contains("física") || n.NomeDisciplina.ToLower().Contains("fisica"))
-                        {
-                            int nMod = ExtrairNumeroModulo(n.NomeModulo);
-                            if (nMod <= 13)
-                            {
-                                n.Ano = "1º Ano";
-                            }
-                            else if (nMod >= 14 && nMod <= 16)
-                            {
-                                n.Ano = "2º Ano";
-                            }
-                            else
-                            {
-                                n.Ano = "3º Ano";
-                            }
-                        }
-                    }
-                }
                 foreach (NotaModulo n in todasAsNotas)
                 {
                     // Se for do tipo 'final', guardamos nos objetos especiais e não na lista da grid
@@ -184,7 +161,7 @@ namespace DCGest
                             }
                         }
                     }
-                    // Se for uma disciplina normal E do ano selecionado (já corrigido dinamicamente), vai para a grid
+                    // Se for uma disciplina normal E do ano selecionado (visto da Disciplina), vai para a grid
                     else if (n.Ano == ano)
                     {
                         listaNotas.Add(n);
