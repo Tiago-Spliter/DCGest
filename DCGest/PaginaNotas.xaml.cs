@@ -132,62 +132,28 @@ namespace DCGest
                 }
 
                 // DISTRIBUIÇÃO DINÂMICA DE ANOS PARA CORRIGIR A BASE DE DADOS
-                Dictionary<string, List<NotaModulo>> dictDisc = new Dictionary<string, List<NotaModulo>>();
                 foreach (NotaModulo n in todasAsNotas)
                 {
                     if (n.TipoDisciplina.ToLower().Contains("final") == false)
                     {
-                        if (dictDisc.ContainsKey(n.NomeDisciplina) == false)
+                        if (n.NomeDisciplina.ToLower().Contains("física") || n.NomeDisciplina.ToLower().Contains("fisica"))
                         {
-                            dictDisc.Add(n.NomeDisciplina, new List<NotaModulo>());
-                        }
-                        dictDisc[n.NomeDisciplina].Add(n);
-                    }
-                }
-
-                List<string> chavesDisc = new List<string>(dictDisc.Keys);
-                foreach (string nome in chavesDisc)
-                {
-                    List<NotaModulo> mods = dictDisc[nome];
-
-                    for (int i = 0; i < mods.Count - 1; i++)
-                    {
-                        for (int j = i + 1; j < mods.Count; j++)
-                        {
-                            int numI = ExtrairNumeroModulo(mods[i].NomeModulo);
-                            int numJ = ExtrairNumeroModulo(mods[j].NomeModulo);
-                            if (numI > numJ)
+                            int nMod = ExtrairNumeroModulo(n.NomeModulo);
+                            if (nMod <= 13)
                             {
-                                NotaModulo temp = mods[i];
-                                mods[i] = mods[j];
-                                mods[j] = temp;
+                                n.Ano = "1º Ano";
                             }
-                        }
-                    }
-
-                    int totalM = mods.Count;
-                    if (totalM > 0)
-                    {
-                        double modsPorAno = (double)totalM / 3.0;
-                        int limiteAno1 = (int)Math.Ceiling(modsPorAno);
-                        int limiteAno2 = (int)Math.Ceiling(modsPorAno * 2.0);
-
-                        for (int i = 0; i < totalM; i++)
-                        {
-                            int anoCalc = 1;
-                            if (i >= limiteAno2)
+                            else if (nMod >= 14 && nMod <= 16)
                             {
-                                anoCalc = 3;
+                                n.Ano = "2º Ano";
                             }
-                            else if (i >= limiteAno1)
+                            else
                             {
-                                anoCalc = 2;
+                                n.Ano = "3º Ano";
                             }
-                            mods[i].Ano = anoCalc.ToString() + "º Ano";
                         }
                     }
                 }
-
                 foreach (NotaModulo n in todasAsNotas)
                 {
                     // Se for do tipo 'final', guardamos nos objetos especiais e não na lista da grid

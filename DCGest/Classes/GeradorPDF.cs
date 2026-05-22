@@ -12,27 +12,25 @@ namespace DCGest.Classes
     {
         private string connectionString = BD.CaminhoBD;
 
-        // PALETE DE CORES SINCRONIZADA (3 níveis de intensidade)
+        // PALETE DE CORES REFINADA
 
-        // TEMA LARANJA (Ano 1 / Técnica)
-        BaseColor corLaranjaClaro = new BaseColor(255, 235, 210);  // Células Grid
-        BaseColor corLaranjaMedio = new BaseColor(250, 191, 143);  // Nomes Disciplinas / Linhas Resumo
-        BaseColor corLaranjaEscuro = new BaseColor(228, 108, 10);  // Header Rodapé
+        // TONS DE REFERÊNCIA (Para as células M1-M19)
+        BaseColor corLaranjaMedio = new BaseColor(250, 191, 143);  // 1º Ano
+        BaseColor corVerdeMedio = new BaseColor(200, 230, 180);    // 2º Ano (Verde suave mas visível)
+        BaseColor corRosaMedio = new BaseColor(255, 192, 203);     // 3º Ano (Mais para o Rosa genuíno)
 
-        // TEMA VERDE (Ano 2 / Científica)
-        BaseColor corVerdeClaro = new BaseColor(230, 255, 230);    // Células Grid
-        BaseColor corVerdeMedio = new BaseColor(200, 230, 180);    // Nomes Disciplinas / Linhas Resumo
-        BaseColor corVerdeEscuro = new BaseColor(118, 147, 60);    // Header Rodapé
+        // TONS DE CABEÇALHO (Rodapé)
+        BaseColor corLaranjaEscuro = new BaseColor(228, 108, 10);
+        BaseColor corVerdeEscuro = new BaseColor(118, 147, 60);
+        BaseColor corRosaEscuro = new BaseColor(148, 54, 52);
 
-        // TEMA ROSA (Ano 3 / Sociocultural)
-        BaseColor corRosaClaro = new BaseColor(255, 235, 235);     // Células Grid
-        BaseColor corRosaMedio = new BaseColor(242, 220, 219);     // Nomes Disciplinas / Linhas Resumo
-        BaseColor corRosaEscuro = new BaseColor(148, 54, 52);      // Header Rodapé
+        // TONS DE COMPONENTE (Coluna 1)
+        BaseColor corRosaMuitoClaro = new BaseColor(255, 230, 240); // Sociocultural (Mais claro)
 
         // CORES ESPECIAIS
-        BaseColor corFCT = new BaseColor(183, 222, 232);          // Azul
-        BaseColor corHeaderGrelha = new BaseColor(211, 211, 211); // Cinza
-        BaseColor corFinalCurso = new BaseColor(255, 255, 0);     // Amarelo
+        BaseColor corFCT = new BaseColor(183, 222, 232);
+        BaseColor corHeaderGrelha = new BaseColor(211, 211, 211);
+        BaseColor corFinalCurso = new BaseColor(255, 255, 0);
 
         public string GerarRelatorioAluno(Aluno aluno)
         {
@@ -88,11 +86,17 @@ namespace DCGest.Classes
             gridM.WidthPercentage = 100;
             float[] wGrid = new float[20];
             wGrid[0] = 5f;
-            for (int i = 1; i < 20; i++) wGrid[i] = 1f;
+            for (int i = 1; i < 20; i++)
+            {
+                wGrid[i] = 1f;
+            }
             gridM.SetWidths(wGrid);
 
             gridM.AddCell(new PdfPCell(new Phrase("DISCIPLINAS", fBold)) { BackgroundColor = corHeaderGrelha, Padding = 2 });
-            for (int i = 1; i <= 19; i++) gridM.AddCell(new PdfPCell(new Phrase("M" + i, fBold)) { BackgroundColor = corHeaderGrelha, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
+            for (int i = 1; i <= 19; i++)
+            {
+                gridM.AddCell(new PdfPCell(new Phrase("M" + i, fBold)) { BackgroundColor = corHeaderGrelha, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
+            }
 
             List<NotaModulo> todasNotas = ObterTodasNotas(aluno.Cod_Aluno);
 
@@ -114,34 +118,66 @@ namespace DCGest.Classes
             foreach (string nomeDisc in nomesDisciplinas)
             {
                 string tipo = discAgrupadas[nomeDisc][0].TipoDisciplina.ToLower();
-                if (tipo.Contains("cultural")) discSocioculturais.Add(nomeDisc);
-                else if (tipo.Contains("científica")) discCientificas.Add(nomeDisc);
-                else if (tipo.Contains("técnica")) discTecnicas.Add(nomeDisc);
+                if (tipo.Contains("cultural"))
+                {
+                    discSocioculturais.Add(nomeDisc);
+                }
+                else if (tipo.Contains("científica"))
+                {
+                    discCientificas.Add(nomeDisc);
+                }
+                else if (tipo.Contains("técnica"))
+                {
+                    discTecnicas.Add(nomeDisc);
+                }
             }
 
-            discSocioculturais.Sort(); discCientificas.Sort(); discTecnicas.Sort();
+            discSocioculturais.Sort();
+            discCientificas.Sort();
+            discTecnicas.Sort();
+
             List<string> ordemFinal = new List<string>();
-            ordemFinal.AddRange(discSocioculturais); ordemFinal.AddRange(discCientificas); ordemFinal.AddRange(discTecnicas);
+            ordemFinal.AddRange(discSocioculturais);
+            ordemFinal.AddRange(discCientificas);
+            ordemFinal.AddRange(discTecnicas);
 
             foreach (string nomeDisc in ordemFinal)
             {
                 string tipo = discAgrupadas[nomeDisc][0].TipoDisciplina;
-                gridM.AddCell(new PdfPCell(new Phrase(nomeDisc, fBase)) { BackgroundColor = GetCorComponente(tipo, "medio"), Padding = 2 });
+
+                // AJUSTE DE CORES DAS COMPONENTES (COLUNA 1)
+                BaseColor corFundoNome = BaseColor.WHITE;
+                if (tipo.ToLower().Contains("cultural"))
+                {
+                    corFundoNome = corRosaMuitoClaro; // Rosa mais claro
+                }
+                else if (tipo.ToLower().Contains("técnica"))
+                {
+                    corFundoNome = corVerdeMedio; // Verde
+                }
+                // Científica já é Branco por defeito
+
+                gridM.AddCell(new PdfPCell(new Phrase(nomeDisc, fBase)) { BackgroundColor = corFundoNome, Padding = 2 });
 
                 NotaModulo[] colunas = new NotaModulo[20];
                 foreach (NotaModulo m in discAgrupadas[nomeDisc])
                 {
                     int nMod = ExtrairNumeroModulo(m.NomeModulo);
-                    if (nMod >= 1 && nMod <= 19) colunas[nMod] = m;
+                    if (nMod >= 1 && nMod <= 19)
+                    {
+                        colunas[nMod] = m;
+                    }
                 }
 
                 for (int i = 1; i <= 19; i++)
                 {
-                    string v = ""; BaseColor bgCell = BaseColor.WHITE;
+                    string v = "";
+                    BaseColor bgCell = BaseColor.WHITE;
                     if (colunas[i] != null)
                     {
                         v = colunas[i].Valor != null ? colunas[i].Valor.ToString() : "0";
-                        bgCell = GetCorAnoIntensa(colunas[i].Ano, "claro");
+                        // Células das Notas: Carregadas (Médio), texto a preto
+                        bgCell = GetCorAnoIntensa(colunas[i].Ano);
                     }
                     gridM.AddCell(new PdfPCell(new Phrase(v, fBase)) { BackgroundColor = bgCell, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
                 }
@@ -209,7 +245,10 @@ namespace DCGest.Classes
                     {
                         notasAno.Add(n);
                         totalModulos = totalModulos + 1;
-                        if (n.TipoDisciplina.ToLower().Contains("técnica")) tecnicasModulos = tecnicasModulos + 1;
+                        if (n.TipoDisciplina.ToLower().Contains("técnica"))
+                        {
+                            tecnicasModulos = tecnicasModulos + 1;
+                        }
                     }
                 }
             }
@@ -229,12 +268,18 @@ namespace DCGest.Classes
             data.AddCell(new PdfPCell(new Phrase(ano.ToUpper(), fBold)) { BackgroundColor = cHeader, Colspan = 4, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
 
             string[] subH = { "MÉDIA", "MÓD NR", "SIT.", "TEC" };
-            foreach (string s in subH) data.AddCell(new PdfPCell(new Phrase(s, fBold)) { BackgroundColor = corHeaderGrelha, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
+            foreach (string s in subH)
+            {
+                data.AddCell(new PdfPCell(new Phrase(s, fBold)) { BackgroundColor = corHeaderGrelha, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
+            }
 
             Dictionary<string, List<NotaModulo>> grupos = new Dictionary<string, List<NotaModulo>>();
             foreach (NotaModulo n in notasAno)
             {
-                if (grupos.ContainsKey(n.NomeDisciplina) == false) grupos.Add(n.NomeDisciplina, new List<NotaModulo>());
+                if (grupos.ContainsKey(n.NomeDisciplina) == false)
+                {
+                    grupos.Add(n.NomeDisciplina, new List<NotaModulo>());
+                }
                 grupos[n.NomeDisciplina].Add(n);
             }
 
@@ -245,7 +290,9 @@ namespace DCGest.Classes
                 {
                     if (GetPrioridadeTipo(grupos[chaves[i]][0].TipoDisciplina) > GetPrioridadeTipo(grupos[chaves[j]][0].TipoDisciplina))
                     {
-                        string temp = chaves[i]; chaves[i] = chaves[j]; chaves[j] = temp;
+                        string temp = chaves[i];
+                        chaves[i] = chaves[j];
+                        chaves[j] = temp;
                     }
                 }
             }
@@ -256,13 +303,29 @@ namespace DCGest.Classes
                 double soma = 0; int countRealizados = 0; bool incompleto = false;
                 foreach (NotaModulo v in notasDisc)
                 {
-                    if (v.Valor != null && v.Valor > 0) { soma = soma + (double)v.Valor; countRealizados = countRealizados + 1; }
-                    if (v.Valor == null || v.Valor < 10) incompleto = true;
+                    if (v.Valor != null && v.Valor > 0)
+                    {
+                        soma = soma + (double)v.Valor;
+                        countRealizados = countRealizados + 1;
+                    }
+                    if (v.Valor == null || v.Valor < 10)
+                    {
+                        incompleto = true;
+                    }
                 }
                 double media = countRealizados > 0 ? soma / (double)countRealizados : 0;
                 string situacao = incompleto ? "SC" : "C";
 
-                BaseColor bgCor = GetCorComponente(notasDisc[0].TipoDisciplina, "medio");
+                BaseColor bgCor = BaseColor.WHITE;
+                if (notasDisc[0].TipoDisciplina.ToLower().Contains("cultural"))
+                {
+                    bgCor = corRosaMuitoClaro;
+                }
+                else if (notasDisc[0].TipoDisciplina.ToLower().Contains("técnica"))
+                {
+                    bgCor = corVerdeMedio;
+                }
+
                 data.AddCell(new PdfPCell(new Phrase(media.ToString("N1"), fBase)) { BackgroundColor = bgCor, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
                 data.AddCell(new PdfPCell(new Phrase(countRealizados.ToString(), fBase)) { BackgroundColor = bgCor, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
                 data.AddCell(new PdfPCell(new Phrase(situacao, fBase)) { BackgroundColor = bgCor, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
@@ -275,65 +338,47 @@ namespace DCGest.Classes
         private int ExtrairNumeroModulo(string nome)
         {
             string num = "";
-            foreach (char c in nome) { if (char.IsDigit(c)) num = num + c; }
-            return num != "" ? Convert.ToInt32(num) : 0;
+            foreach (char c in nome)
+            {
+                if (char.IsDigit(c))
+                {
+                    num = num + c;
+                }
+            }
+            if (num != "")
+            {
+                return Convert.ToInt32(num);
+            }
+            return 0;
         }
 
-        private BaseColor GetCorComponente(string tipo, string intensidade)
-        {
-            if (tipo.ToLower().Contains("técnica"))
-            {
-                if (intensidade == "claro")
-                {
-                    return corLaranjaClaro;
-                }
-                return corLaranjaMedio;
-            }
-            if (tipo.ToLower().Contains("científica"))
-            {
-                if (intensidade == "claro")
-                {
-                    return corVerdeClaro;
-                }
-                return corVerdeMedio;
-            }
-            if (intensidade == "claro")
-            {
-                return corRosaClaro;
-            }
-            return corRosaMedio;
-        }
-
-        private BaseColor GetCorAnoIntensa(string ano, string intensidade)
+        private BaseColor GetCorAnoIntensa(string ano)
         {
             if (ano.Contains("1"))
             {
-                if (intensidade == "claro")
-                {
-                    return corLaranjaClaro;
-                }
                 return corLaranjaMedio;
             }
             if (ano.Contains("2"))
             {
-                if (intensidade == "claro")
-                {
-                    return corVerdeClaro;
-                }
                 return corVerdeMedio;
-            }
-            if (intensidade == "claro")
-            {
-                return corRosaClaro;
             }
             return corRosaMedio;
         }
 
         private int GetPrioridadeTipo(string tipo)
         {
-            if (tipo.ToLower().Contains("cultural")) return 1;
-            if (tipo.ToLower().Contains("científica")) return 2;
-            if (tipo.ToLower().Contains("técnica")) return 3;
+            if (tipo.ToLower().Contains("cultural"))
+            {
+                return 1;
+            }
+            if (tipo.ToLower().Contains("científica"))
+            {
+                return 2;
+            }
+            if (tipo.ToLower().Contains("técnica"))
+            {
+                return 3;
+            }
             return 4;
         }
 
@@ -344,10 +389,19 @@ namespace DCGest.Classes
             {
                 if (n.TipoDisciplina.ToLower().Contains(tipo.ToLower()))
                 {
-                    if (n.Valor != null && n.Valor > 0) { soma = soma + (double)n.Valor; conta = conta + 1; }
+                    if (n.Valor != null && n.Valor > 0)
+                    {
+                        soma = soma + (double)n.Valor;
+                        conta = conta + 1;
+                    }
                 }
             }
-            return conta > 0 ? (soma / (double)conta).ToString("N1") : "0,0";
+            if (conta > 0)
+            {
+                double media = soma / (double)conta;
+                return media.ToString("N1");
+            }
+            return "0,0";
         }
 
         private List<NotaModulo> ObterTodasNotas(int codAluno)
@@ -364,74 +418,42 @@ namespace DCGest.Classes
                     {
                         while (r.Read())
                         {
+                            int idNota = Convert.ToInt32(r["Cod_NotaMod"]);
+                            int idMod = Convert.ToInt32(r["Cod_Modulo"]);
                             int? val = null;
                             if (r["Valor"] != DBNull.Value)
                             {
                                 val = Convert.ToInt32(r["Valor"]);
                             }
-                            lista.Add(new NotaModulo(Convert.ToInt32(r["Cod_NotaMod"]), codAluno, Convert.ToInt32(r["Cod_Modulo"]), val, null, r["Ano"].ToString(), r["Modulo"].ToString(), r["Disciplina"].ToString(), r["Tipo"].ToString()));
+
+                            string anoOrig = r["Ano"].ToString();
+                            string nomeMod = r["Modulo"].ToString();
+                            string nomeDisc = r["Disciplina"].ToString();
+                            string tipoDisc = r["Tipo"].ToString();
+
+                            // CORREÇÃO CIRÚRGICA APENAS PARA EDUCAÇÃO FÍSICA (Para não estragar as outras disciplinas)
+                            if (nomeDisc.ToLower().Contains("física") || nomeDisc.ToLower().Contains("fisica"))
+                            {
+                                int nMod = ExtrairNumeroModulo(nomeMod);
+                                if (nMod <= 13)
+                                {
+                                    anoOrig = "1º Ano";
+                                }
+                                else if (nMod >= 14 && nMod <= 16)
+                                {
+                                    anoOrig = "2º Ano";
+                                }
+                                else
+                                {
+                                    anoOrig = "3º Ano";
+                                }
+                            }
+
+                            lista.Add(new NotaModulo(idNota, codAluno, idMod, val, null, anoOrig, nomeMod, nomeDisc, tipoDisc));
                         }
                     }
                 }
             }
-
-            // DISTRIBUIÇÃO DINÂMICA DE ANOS PARA CORRIGIR A BASE DE DADOS
-            Dictionary<string, List<NotaModulo>> dictDisc = new Dictionary<string, List<NotaModulo>>();
-            foreach (NotaModulo n in lista)
-            {
-                if (n.TipoDisciplina.ToLower().Contains("final") == false)
-                {
-                    if (dictDisc.ContainsKey(n.NomeDisciplina) == false)
-                    {
-                        dictDisc.Add(n.NomeDisciplina, new List<NotaModulo>());
-                    }
-                    dictDisc[n.NomeDisciplina].Add(n);
-                }
-            }
-
-            List<string> chavesDisc = new List<string>(dictDisc.Keys);
-            foreach (string nome in chavesDisc)
-            {
-                List<NotaModulo> mods = dictDisc[nome];
-
-                for (int i = 0; i < mods.Count - 1; i++)
-                {
-                    for (int j = i + 1; j < mods.Count; j++)
-                    {
-                        int numI = ExtrairNumeroModulo(mods[i].NomeModulo);
-                        int numJ = ExtrairNumeroModulo(mods[j].NomeModulo);
-                        if (numI > numJ)
-                        {
-                            NotaModulo temp = mods[i];
-                            mods[i] = mods[j];
-                            mods[j] = temp;
-                        }
-                    }
-                }
-
-                int totalM = mods.Count;
-                if (totalM > 0)
-                {
-                    double modsPorAno = (double)totalM / 3.0;
-                    int limiteAno1 = (int)Math.Ceiling(modsPorAno);
-                    int limiteAno2 = (int)Math.Ceiling(modsPorAno * 2.0);
-
-                    for (int i = 0; i < totalM; i++)
-                    {
-                        int anoCalc = 1;
-                        if (i >= limiteAno2)
-                        {
-                            anoCalc = 3;
-                        }
-                        else if (i >= limiteAno1)
-                        {
-                            anoCalc = 2;
-                        }
-                        mods[i].Ano = anoCalc.ToString() + "º Ano";
-                    }
-                }
-            }
-
             return lista;
         }
     }
