@@ -283,32 +283,50 @@ namespace DCGest.Classes
         {
             if (tipo.ToLower().Contains("técnica"))
             {
-                if (intensidade == "claro") return corLaranjaClaro;
-                return corLaranjaEscuro;
+                if (intensidade == "claro")
+                {
+                    return corLaranjaClaro;
+                }
+                return corLaranjaMedio;
             }
             if (tipo.ToLower().Contains("científica"))
             {
-                if (intensidade == "claro") return corVerdeClaro;
-                return corVerdeEscuro;
+                if (intensidade == "claro")
+                {
+                    return corVerdeClaro;
+                }
+                return corVerdeMedio;
             }
-            if (intensidade == "claro") return corRosaClaro;
-            return corRosaEscuro;
+            if (intensidade == "claro")
+            {
+                return corRosaClaro;
+            }
+            return corRosaMedio;
         }
 
         private BaseColor GetCorAnoIntensa(string ano, string intensidade)
         {
             if (ano.Contains("1"))
             {
-                if (intensidade == "claro") return corLaranjaClaro;
-                return corLaranjaEscuro;
+                if (intensidade == "claro")
+                {
+                    return corLaranjaClaro;
+                }
+                return corLaranjaMedio;
             }
             if (ano.Contains("2"))
             {
-                if (intensidade == "claro") return corVerdeClaro;
-                return corVerdeEscuro;
+                if (intensidade == "claro")
+                {
+                    return corVerdeClaro;
+                }
+                return corVerdeMedio;
             }
-            if (intensidade == "claro") return corRosaClaro;
-            return corRosaEscuro;
+            if (intensidade == "claro")
+            {
+                return corRosaClaro;
+            }
+            return corRosaMedio;
         }
 
         private int GetPrioridadeTipo(string tipo)
@@ -346,12 +364,74 @@ namespace DCGest.Classes
                     {
                         while (r.Read())
                         {
-                            int? val = r["Valor"] != DBNull.Value ? (int?)Convert.ToInt32(r["Valor"]) : null;
+                            int? val = null;
+                            if (r["Valor"] != DBNull.Value)
+                            {
+                                val = Convert.ToInt32(r["Valor"]);
+                            }
                             lista.Add(new NotaModulo(Convert.ToInt32(r["Cod_NotaMod"]), codAluno, Convert.ToInt32(r["Cod_Modulo"]), val, null, r["Ano"].ToString(), r["Modulo"].ToString(), r["Disciplina"].ToString(), r["Tipo"].ToString()));
                         }
                     }
                 }
             }
+
+            // DISTRIBUIÇÃO DINÂMICA DE ANOS PARA CORRIGIR A BASE DE DADOS
+            Dictionary<string, List<NotaModulo>> dictDisc = new Dictionary<string, List<NotaModulo>>();
+            foreach (NotaModulo n in lista)
+            {
+                if (n.TipoDisciplina.ToLower().Contains("final") == false)
+                {
+                    if (dictDisc.ContainsKey(n.NomeDisciplina) == false)
+                    {
+                        dictDisc.Add(n.NomeDisciplina, new List<NotaModulo>());
+                    }
+                    dictDisc[n.NomeDisciplina].Add(n);
+                }
+            }
+
+            List<string> chavesDisc = new List<string>(dictDisc.Keys);
+            foreach (string nome in chavesDisc)
+            {
+                List<NotaModulo> mods = dictDisc[nome];
+
+                for (int i = 0; i < mods.Count - 1; i++)
+                {
+                    for (int j = i + 1; j < mods.Count; j++)
+                    {
+                        int numI = ExtrairNumeroModulo(mods[i].NomeModulo);
+                        int numJ = ExtrairNumeroModulo(mods[j].NomeModulo);
+                        if (numI > numJ)
+                        {
+                            NotaModulo temp = mods[i];
+                            mods[i] = mods[j];
+                            mods[j] = temp;
+                        }
+                    }
+                }
+
+                int totalM = mods.Count;
+                if (totalM > 0)
+                {
+                    double modsPorAno = (double)totalM / 3.0;
+                    int limiteAno1 = (int)Math.Ceiling(modsPorAno);
+                    int limiteAno2 = (int)Math.Ceiling(modsPorAno * 2.0);
+
+                    for (int i = 0; i < totalM; i++)
+                    {
+                        int anoCalc = 1;
+                        if (i >= limiteAno2)
+                        {
+                            anoCalc = 3;
+                        }
+                        else if (i >= limiteAno1)
+                        {
+                            anoCalc = 2;
+                        }
+                        mods[i].Ano = anoCalc.ToString() + "º Ano";
+                    }
+                }
+            }
+
             return lista;
         }
     }

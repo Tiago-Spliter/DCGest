@@ -75,6 +75,8 @@ namespace DCGest
                 notaFCT = null;
                 notaPAP = null;
 
+                List<NotaModulo> todasAsNotas = new List<NotaModulo>();
+
                 using (MySqlConnection conexao = new MySqlConnection(caminho))
                 {
                     conexao.Open();
@@ -123,41 +125,103 @@ namespace DCGest
                                     tipo
                                 );
 
-                                // Se for do tipo 'final', guardamos nos objetos especiais e não na lista da grid
-                                if (tipo.ToLower() == "final")
-                                {
-                                    if (discNome.ToUpper().Contains("FCT"))
-                                    {
-                                        notaFCT = n;
-                                        if (n.Valor != null)
-                                        {
-                                            txt_notaFCT.Text = n.Valor.ToString();
-                                        }
-                                        else
-                                        {
-                                            txt_notaFCT.Text = "0";
-                                        }
-                                    }
-                                    else if (discNome.ToUpper().Contains("PAP"))
-                                    {
-                                        notaPAP = n;
-                                        if (n.Valor != null)
-                                        {
-                                            txt_notaPAP.Text = n.Valor.ToString();
-                                        }
-                                        else
-                                        {
-                                            txt_notaPAP.Text = "0";
-                                        }
-                                    }
-                                }
-                                // Se for uma disciplina normal E do ano selecionado, vai para a grid
-                                else if (anoNota == ano)
-                                {
-                                    listaNotas.Add(n);
-                                }
+                                todasAsNotas.Add(n);
                             }
                         }
+                    }
+                }
+
+                // DISTRIBUIÇÃO DINÂMICA DE ANOS PARA CORRIGIR A BASE DE DADOS
+                Dictionary<string, List<NotaModulo>> dictDisc = new Dictionary<string, List<NotaModulo>>();
+                foreach (NotaModulo n in todasAsNotas)
+                {
+                    if (n.TipoDisciplina.ToLower().Contains("final") == false)
+                    {
+                        if (dictDisc.ContainsKey(n.NomeDisciplina) == false)
+                        {
+                            dictDisc.Add(n.NomeDisciplina, new List<NotaModulo>());
+                        }
+                        dictDisc[n.NomeDisciplina].Add(n);
+                    }
+                }
+
+                List<string> chavesDisc = new List<string>(dictDisc.Keys);
+                foreach (string nome in chavesDisc)
+                {
+                    List<NotaModulo> mods = dictDisc[nome];
+
+                    for (int i = 0; i < mods.Count - 1; i++)
+                    {
+                        for (int j = i + 1; j < mods.Count; j++)
+                        {
+                            int numI = ExtrairNumeroModulo(mods[i].NomeModulo);
+                            int numJ = ExtrairNumeroModulo(mods[j].NomeModulo);
+                            if (numI > numJ)
+                            {
+                                NotaModulo temp = mods[i];
+                                mods[i] = mods[j];
+                                mods[j] = temp;
+                            }
+                        }
+                    }
+
+                    int totalM = mods.Count;
+                    if (totalM > 0)
+                    {
+                        double modsPorAno = (double)totalM / 3.0;
+                        int limiteAno1 = (int)Math.Ceiling(modsPorAno);
+                        int limiteAno2 = (int)Math.Ceiling(modsPorAno * 2.0);
+
+                        for (int i = 0; i < totalM; i++)
+                        {
+                            int anoCalc = 1;
+                            if (i >= limiteAno2)
+                            {
+                                anoCalc = 3;
+                            }
+                            else if (i >= limiteAno1)
+                            {
+                                anoCalc = 2;
+                            }
+                            mods[i].Ano = anoCalc.ToString() + "º Ano";
+                        }
+                    }
+                }
+
+                foreach (NotaModulo n in todasAsNotas)
+                {
+                    // Se for do tipo 'final', guardamos nos objetos especiais e não na lista da grid
+                    if (n.TipoDisciplina.ToLower() == "final")
+                    {
+                        if (n.NomeDisciplina.ToUpper().Contains("FCT"))
+                        {
+                            notaFCT = n;
+                            if (n.Valor != null)
+                            {
+                                txt_notaFCT.Text = n.Valor.ToString();
+                            }
+                            else
+                            {
+                                txt_notaFCT.Text = "0";
+                            }
+                        }
+                        else if (n.NomeDisciplina.ToUpper().Contains("PAP"))
+                        {
+                            notaPAP = n;
+                            if (n.Valor != null)
+                            {
+                                txt_notaPAP.Text = n.Valor.ToString();
+                            }
+                            else
+                            {
+                                txt_notaPAP.Text = "0";
+                            }
+                        }
+                    }
+                    // Se for uma disciplina normal E do ano selecionado (já corrigido dinamicamente), vai para a grid
+                    else if (n.Ano == ano)
+                    {
+                        listaNotas.Add(n);
                     }
                 }
 
@@ -170,6 +234,23 @@ namespace DCGest
             {
                 MessageBox.Show("Erro ao carregar as notas: " + ex.Message);
             }
+        }
+
+        private int ExtrairNumeroModulo(string nome)
+        {
+            string num = "";
+            foreach (char c in nome)
+            {
+                if (char.IsDigit(c))
+                {
+                    num = num + c;
+                }
+            }
+            if (num != "")
+            {
+                return Convert.ToInt32(num);
+            }
+            return 0;
         }
 
         private int GetPrioridadeTipo(string tipo)
