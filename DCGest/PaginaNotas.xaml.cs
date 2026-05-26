@@ -458,6 +458,56 @@ namespace DCGest
                             }
 
                             transacao.Commit();
+
+                            // VERIFICAÇÃO DE PRONTIDÃO PARA ESTÁGIO (Após gravar com sucesso)
+                            using (MySqlConnection conexaoStatus = new MySqlConnection(caminho))
+                            {
+                                conexaoStatus.Open();
+
+                                // 1. Contar total de módulos técnicos do aluno
+                                string sqlTotal = "SELECT COUNT(*) FROM NotaMod n " +
+                                                "INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo " +
+                                                "INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc " +
+                                                "WHERE n.Cod_Aluno = @Aluno AND d.Tipo LIKE '%Técnica%'";
+
+                                int totalTecnicos = 0;
+                                using (MySqlCommand cmdTotal = new MySqlCommand(sqlTotal, conexaoStatus))
+                                {
+                                    cmdTotal.Parameters.AddWithValue("@Aluno", codAluno);
+                                    totalTecnicos = Convert.ToInt32(cmdTotal.ExecuteScalar());
+                                }
+
+                                // 2. Contar módulos técnicos com nota positiva (>= 10)
+                                string sqlPositivos = "SELECT COUNT(*) FROM NotaMod n " +
+                                                    "INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo " +
+                                                    "INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc " +
+                                                    "WHERE n.Cod_Aluno = @Aluno AND d.Tipo LIKE '%Técnica%' AND n.Valor >= 10";
+
+                                int concluidosTecnicos = 0;
+                                using (MySqlCommand cmdPos = new MySqlCommand(sqlPositivos, conexaoStatus))
+                                {
+                                    cmdPos.Parameters.AddWithValue("@Aluno", codAluno);
+                                    concluidosTecnicos = Convert.ToInt32(cmdPos.ExecuteScalar());
+                                }
+
+                                // 3. Verificar se ultrapassa os 90%
+                                if (totalTecnicos > 0)
+                                {
+                                    double percentagem = (double)concluidosTecnicos / (double)totalTecnicos;
+
+                                    if (percentagem > 0.90)
+                                    {
+                                        string sqlUpdate = "UPDATE aluno SET Estado_Estagio = 'Pronto' WHERE Cod_Aluno = @Aluno";
+                                        using (MySqlCommand cmdUpd = new MySqlCommand(sqlUpdate, conexaoStatus))
+                                        {
+                                            cmdUpd.Parameters.AddWithValue("@Aluno", codAluno);
+                                            cmdUpd.ExecuteNonQuery();
+                                        }
+                                        MessageBox.Show("O aluno atingiu mais de 90% dos módulos técnicos positivos! Estado de Estágio atualizado para 'Pronto'.", "Parabéns", MessageBoxButton.OK, MessageBoxImage.Information);
+                                    }
+                                }
+                            }
+
                             dg_alunos.Items.Refresh();
                             CalcularResumos();
                             MessageBox.Show("Todas as notas (Módulos e FCT/PAP) foram guardadas com sucesso!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
