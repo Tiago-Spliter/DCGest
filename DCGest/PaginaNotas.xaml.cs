@@ -80,7 +80,7 @@ namespace DCGest
                 {
                     conexao.Open();
 
-                    
+
                     string sql = @"SELECT n.Cod_NotaMod, d.Ano AS AnoDisciplina, m.Designacao AS Modulo, d.Designacao AS Disciplina, d.Tipo, n.Valor, n.Data_Efetua 
                                    FROM NotaMod n 
                                    INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo 

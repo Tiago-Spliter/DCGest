@@ -61,5 +61,40 @@ namespace DCGest
             PaginaPerfil paginaPerfil = new PaginaPerfil();
             frm.Content = paginaPerfil;
         }
+
+        private void Btn_Click_Logout(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult resultado = MessageBox.Show("Tem a certeza que deseja terminar a sessão?", "Logout", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (resultado == MessageBoxResult.Yes)
+            {
+                // Limpar dados da sessão
+                Sessao.UtilizadorLogado = null;
+                Sessao.Login = string.Empty;
+
+                // Esconder a janela principal
+                this.Hide();
+
+                // Abrir novamente a janela de login
+                JanelaLogin janelaLogin = new JanelaLogin();
+
+                if (janelaLogin.ShowDialog() == true)
+                {
+                    // Se o login for bem-sucedido, atualizamos a interface e mostramos a janela
+                    if (Sessao.UtilizadorLogado != null)
+                    {
+                        lbl_UserNome.Text = Sessao.UtilizadorLogado.Nome_DC;
+                    }
+
+                    frm.Content = new InformacaoInicial();
+                    this.Show();
+                }
+                else
+                {
+                    // Se cancelar o login, fecha a aplicação
+                    Application.Current.Shutdown();
+                }
+            }
+        }
     }
 }

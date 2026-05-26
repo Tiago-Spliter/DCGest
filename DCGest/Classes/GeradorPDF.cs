@@ -13,26 +13,26 @@ namespace DCGest.Classes
         private string connectionString = BD.CaminhoBD;
 
         // PALETE DE CORES SINCRONIZADA
-        
+
         // TONS DE REFERÊNCIA (Para as células M1-M19)
         BaseColor corLaranjaMedio = new BaseColor(250, 191, 143);  // 1º Ano
         BaseColor corVerdeMedio = new BaseColor(170, 210, 140);    // 2º Ano
         BaseColor corVermelhoMedio = new BaseColor(240, 160, 160); // 3º Ano
 
         // TONS DE CABEÇALHO (Rodapé)
-        BaseColor corLaranjaEscuro = new BaseColor(228, 108, 10);  
-        BaseColor corVerdeEscuro = new BaseColor(118, 147, 60);    
-        BaseColor corVermelhoEscuro = new BaseColor(180, 40, 40);  
+        BaseColor corLaranjaEscuro = new BaseColor(228, 108, 10);
+        BaseColor corVerdeEscuro = new BaseColor(118, 147, 60);
+        BaseColor corVermelhoEscuro = new BaseColor(180, 40, 40);
 
         // TONS DE COMPONENTE (Coluna 1)
-        BaseColor corRosaCarregado = new BaseColor(245, 140, 170);  
-        BaseColor corVerdeClaroComponente = new BaseColor(210, 235, 190); 
+        BaseColor corRosaCarregado = new BaseColor(245, 140, 170);
+        BaseColor corVerdeClaroComponente = new BaseColor(210, 235, 190);
 
         // CORES ESPECIAIS
-        BaseColor corFCT = new BaseColor(183, 222, 232);          
-        BaseColor corHeaderGrelha = new BaseColor(211, 211, 211); 
-        BaseColor corFinalCurso = new BaseColor(255, 255, 0);     
-        BaseColor corRosaMuitoClaro = new BaseColor(255, 230, 240); 
+        BaseColor corFCT = new BaseColor(183, 222, 232);
+        BaseColor corHeaderGrelha = new BaseColor(211, 211, 211);
+        BaseColor corFinalCurso = new BaseColor(255, 255, 0);
+        BaseColor corRosaMuitoClaro = new BaseColor(255, 230, 240);
 
         public string GerarRelatorioAluno(Aluno aluno)
         {
@@ -125,7 +125,7 @@ namespace DCGest.Classes
                     if (discAgrupadas[nomeDisc][0].Valor != null) vF = (double)discAgrupadas[nomeDisc][0].Valor;
                     if (nomeDisc.ToUpper().Contains("FCT")) notaFCT = vF;
                     else if (nomeDisc.ToUpper().Contains("PAP")) notaPAP = vF;
-                    continue; 
+                    continue;
                 }
 
                 BaseColor bgComp = BaseColor.WHITE;
@@ -169,9 +169,9 @@ namespace DCGest.Classes
             PdfPTable tabMediasMod = new PdfPTable(2);
             tabMediasMod.WidthPercentage = 30;
             tabMediasMod.HorizontalAlignment = Element.ALIGN_LEFT;
-            
+
             double somaGeral = 0; int contaGeral = 0;
-            foreach(NotaModulo nm in todasNotas)
+            foreach (NotaModulo nm in todasNotas)
             {
                 if (nm.TipoDisciplina.ToLower().Contains("final") == false && nm.Valor != null && nm.Valor > 0)
                 {
@@ -210,7 +210,7 @@ namespace DCGest.Classes
             tabAnos.AddCell(CriarMiniTabelaAno(todasNotas, "1º Ano", corLaranjaEscuro, fBase, fBold));
             tabAnos.AddCell(CriarMiniTabelaAno(todasNotas, "2º Ano", corVerdeEscuro, fBase, fBold));
             tabAnos.AddCell(CriarMiniTabelaAno(todasNotas, "3º Ano", corVermelhoEscuro, fBase, fBold));
-            
+
             doc.Add(tabAnos);
             doc.Close();
             return caminhoPdf;
@@ -246,7 +246,7 @@ namespace DCGest.Classes
             data.WidthPercentage = 100; data.SpacingBefore = 2;
             data.AddCell(new PdfPCell(new Phrase(ano.ToUpper(), fBold)) { BackgroundColor = cHeader, Colspan = 4, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
             string[] subH = { "MÉDIA", "MÓD NR", "SIT.", "TEC" };
-            foreach(string s in subH) data.AddCell(new PdfPCell(new Phrase(s, fBold)) { BackgroundColor = corHeaderGrelha, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
+            foreach (string s in subH) data.AddCell(new PdfPCell(new Phrase(s, fBold)) { BackgroundColor = corHeaderGrelha, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
 
             Dictionary<string, List<NotaModulo>> grupos = new Dictionary<string, List<NotaModulo>>();
             foreach (NotaModulo n in notasAno)
@@ -271,7 +271,7 @@ namespace DCGest.Classes
             {
                 List<NotaModulo> notasDisc = grupos[nome];
                 double soma = 0; int realizado = 0; bool sc = false;
-                foreach(NotaModulo v in notasDisc)
+                foreach (NotaModulo v in notasDisc)
                 {
                     if (v.Valor != null && v.Valor > 0) { soma += (double)v.Valor; realizado++; }
                     if (v.Valor == null || v.Valor < 10) sc = true;
