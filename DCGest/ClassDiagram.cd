@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="DCGest.Classes.Aluno">
+    <Position X="6.25" Y="2" Width="1.5" />
+    <InheritanceLine Type="DCGest.Classes.Entidade" FixedToPoint="true">
+      <Path>
+        <Point X="5.25" Y="1.853" />
+        <Point X="5.25" Y="3" />
+        <Point X="6.25" Y="3" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAACAgAAABAAgAAAAAAAAAAAIAAgARAASIIIAAAAA=</HashCode>
+      <FileName>Classes\Aluno.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.AnoLetivo">
+    <Position X="12.5" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQAgAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\AnoLetivo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.Autenticacao">
+    <Position X="4.5" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAACAAAAAA=</HashCode>
+      <FileName>Classes\Autenticacao.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.Curso">
+    <Position X="14.25" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQAAAAAAAAgAAAAAAAAAAAAAAAAAAACAAAAAAAA=</HashCode>
+      <FileName>Classes\Curso.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.DiretorCurso">
+    <Position X="2.75" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAAAAAAAgAAAAAAAAAAAAAAACAAAQAAAAAAAA=</HashCode>
+      <FileName>Classes\DiretorCurso.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.Disciplina">
+    <Position X="10" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAQAAAgAAAgAAAAAAAAAAAAAAAAAAAAAAAQ=</HashCode>
+      <FileName>Classes\Disciplina.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.Entidade">
+    <Position X="4.5" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Entidade.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.GeradorPDF">
+    <Position X="18" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ECACAAAAgAQAAAohAMAAAQggAAAQAAABAEAYAAAQAIA=</HashCode>
+      <FileName>Classes\GeradorPDF.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.MediaDisciplina">
+    <Position X="15.25" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAACAAAQ=</HashCode>
+      <FileName>Classes\MediaDisciplina.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.Modulo">
+    <Position X="11.75" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAEAQAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Modulo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.NotaModulo">
+    <Position X="13.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IkAAICAAEAAAAAAAAAAAAAAEAAIAAAAAAAAAAACAAAA=</HashCode>
+      <FileName>Classes\NotaModulo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.Orientador">
+    <Position X="2.75" Y="2" Width="1.5" />
+    <InheritanceLine Type="DCGest.Classes.Entidade" FixedToPoint="true">
+      <Path>
+        <Point X="5.25" Y="1.853" />
+        <Point X="5.25" Y="3" />
+        <Point X="4.25" Y="3" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAQAAAAAABAAAAAAAAAAAAAIAAAABAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Orientador.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.Sessao">
+    <Position X="6.25" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAA=</HashCode>
+      <FileName>Classes\Sessao.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.Turma">
+    <Position X="10.75" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAEAAAA=</HashCode>
+      <FileName>Classes\Turma.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
