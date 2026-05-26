@@ -69,7 +69,6 @@ namespace DCGest
             try
             {
                 listaNotas.Clear();
-                // Limpar campos visuais das notas finais antes de carregar
                 txt_notaFCT.Text = "0";
                 txt_notaPAP.Text = "0";
                 notaFCT = null;
@@ -81,7 +80,7 @@ namespace DCGest
                 {
                     conexao.Open();
 
-                    // Query que busca o Ano diretamente da tabela Disciplina para fidelidade total aos dados
+                    
                     string sql = @"SELECT n.Cod_NotaMod, d.Ano AS AnoDisciplina, m.Designacao AS Modulo, d.Designacao AS Disciplina, d.Tipo, n.Valor, n.Data_Efetua 
                                    FROM NotaMod n 
                                    INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo 
@@ -179,23 +178,6 @@ namespace DCGest
             }
         }
 
-        private int ExtrairNumeroModulo(string nome)
-        {
-            string num = "";
-            foreach (char c in nome)
-            {
-                if (char.IsDigit(c))
-                {
-                    num = num + c;
-                }
-            }
-            if (num != "")
-            {
-                return Convert.ToInt32(num);
-            }
-            return 0;
-        }
-
         private int GetPrioridadeTipo(string tipo)
         {
             if (tipo.ToLower().Contains("sociocultural"))
@@ -234,7 +216,7 @@ namespace DCGest
                 // Extrair as chaves para uma lista para ordenar
                 List<string> chaves = new List<string>(grupos.Keys);
 
-                // Bubble sort para ordenar os grupos baseados na prioridade (Sociocultural, Cientifica, Tecnica)
+                // Bubble sort
                 for (int i = 0; i < chaves.Count - 1; i++)
                 {
                     for (int j = i + 1; j < chaves.Count; j++)
@@ -274,8 +256,8 @@ namespace DCGest
                     {
                         if (n.Valor != null && n.Valor >= 0)
                         {
-                            somaNotas = somaNotas + (double)n.Valor;
-                            contadorModulosComNota = contadorModulosComNota + 1;
+                            somaNotas += (double)n.Valor;
+                            contadorModulosComNota += 1;
                         }
 
                         if (n.Valor == null || n.Valor < 10)
@@ -312,19 +294,19 @@ namespace DCGest
                     {
                         double valorNota = (double)n.Valor;
 
-                        somaGeral = somaGeral + valorNota;
-                        contGeral = contGeral + 1;
+                        somaGeral += valorNota;
+                        contGeral += 1;
 
                         if (n.TipoDisciplina.ToLower().Contains("científica"))
                         {
-                            somaCien = somaCien + valorNota;
-                            contCien = contCien + 1;
+                            somaCien += valorNota;
+                            contCien += 1;
                         }
 
                         if (n.TipoDisciplina.ToLower().Contains("técnica"))
                         {
-                            somaTec = somaTec + valorNota;
-                            contTec = contTec + 1;
+                            somaTec += valorNota;
+                            contTec += 1;
                         }
                     }
                 }
@@ -357,7 +339,7 @@ namespace DCGest
                     txt_mediaTecnica.Text = "0,00";
                 }
 
-                // 5. Média Final do Aluno
+                // 5. Média Final do Aluno (Pesos Oficiais: Módulos 66%, FCT 11%, PAP 23%)
                 double fct = 0;
                 if (txt_notaFCT.Text != "")
                 {
@@ -373,12 +355,10 @@ namespace DCGest
                 double mediaDasNotas = 0;
                 if (contGeral > 0)
                 {
-                    mediaDasNotas = somaGeral / contGeral;
+                    mediaDasNotas = somaGeral / (double)contGeral;
                 }
 
-                double divisor = 3; // Média + FCT + PAP
-
-                double mFinal = (mediaDasNotas + fct + pap) / divisor;
+                double mFinal = (mediaDasNotas * 0.66) + (fct * 0.11) + (pap * 0.23);
                 lbl_mediaFinal.Text = mFinal.ToString("N1");
             }
             catch (Exception ex)
@@ -397,7 +377,6 @@ namespace DCGest
 
             try
             {
-                // Lista temporária para agrupar tudo o que deve ser salvo
                 List<NotaModulo> notasParaSalvar = new List<NotaModulo>();
                 foreach (NotaModulo n in listaNotas)
                 {
