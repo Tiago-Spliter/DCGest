@@ -89,7 +89,7 @@
                                         <ComboBox ItemsSource="{Binding ListaAlineas, RelativeSource={RelativeSource AncestorType=Window}}"
                                                   SelectedValue="{Binding Cod_Estado, UpdateSourceTrigger=PropertyChanged}"
                                                   SelectedValuePath="Cod_Alinea"
-                                                  DisplayMemberPath="Display"
+                                                  DisplayMemberPath="AlineaLetra"
                                                   VerticalContentAlignment="Center"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>

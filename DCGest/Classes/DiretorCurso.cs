@@ -1,5 +1,3 @@
-using System;
-
 namespace DCGest.Classes
 {
     public class DiretorCurso

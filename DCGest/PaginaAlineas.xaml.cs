@@ -1,7 +1,6 @@
 using DCGest.Classes;
 using MySql.Data.MySqlClient;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,56 +9,12 @@ namespace DCGest
 {
     public partial class PaginaAlineas : UserControl
     {
-        private readonly string _caminho = BD.CaminhoBD;
-
-        private static readonly (int Id, string Regra, string Descricao)[] RegrasSeed =
-        {
-            (1,  "Ausente",       "Não estiveste presente na avaliação deste módulo."),
-            (2,  "Falta",         "A tua classificação foi condicionada por excesso de faltas de presença."),
-            (3,  "Dispensado",    "Foste dispensado da realização da avaliação deste módulo."),
-            (4,  "Isento",        "Estás isento da avaliação deste módulo, podendo resultar de competências reconhecidas."),
-            (5,  "Não Avaliado",  "Ainda não realizaste a avaliação deste módulo."),
-            (6,  "Recuperação",   "Tens oportunidade de realizar uma prova de recuperação para este módulo."),
-            (7,  "Prova Especial","Realizaste ou vais realizar uma prova especial para concluir este módulo."),
-            (8,  "Equivalência",  "A classificação deste módulo foi atribuída por equivalência a formação anterior."),
-            (9,  "Transferido",   "O teu historial neste módulo foi transferido de outro estabelecimento de ensino."),
-            (10, "Concluido",     "Concluíste com sucesso este módulo."),
-            (11, "Anulado",       "A avaliação deste módulo foi anulada por decisão administrativa.")
-        };
+        private string _caminho = BD.CaminhoBD;
 
         public PaginaAlineas()
         {
             InitializeComponent();
-            SeedAlineas();
             CarregarAlineas();
-        }
-
-        private void SeedAlineas()
-        {
-            try
-            {
-                using (var conn = new MySqlConnection(_caminho))
-                {
-                    conn.Open();
-                    foreach (var (id, regra, descricao) in RegrasSeed)
-                    {
-                        string sql = @"INSERT INTO Alineas (Cod_alinea, Alinea, Regra, Descricao)
-                                       VALUES (@Id, '', @R, @D)
-                                       ON DUPLICATE KEY UPDATE Regra = @R";
-                        using (var cmd = new MySqlCommand(sql, conn))
-                        {
-                            cmd.Parameters.AddWithValue("@Id", id);
-                            cmd.Parameters.AddWithValue("@R", regra);
-                            cmd.Parameters.AddWithValue("@D", descricao);
-                            cmd.ExecuteNonQuery();
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Erro ao inicializar tabela de alíneas: " + ex.Message);
-            }
         }
 
         private void CarregarAlineas()

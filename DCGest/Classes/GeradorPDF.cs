@@ -134,10 +134,18 @@ namespace DCGest.Classes
 
                 for (int i = 1; i <= 19; i++)
                 {
-                    string v = ""; BaseColor bgCell = BaseColor.WHITE;
+                    string v = "";
+                    BaseColor bgCell = BaseColor.WHITE;
                     if (colunas[i] != null)
                     {
-                        v = colunas[i].Valor ?? "0";
+                        if (colunas[i].Valor == "RC")
+                        {
+                            v = !string.IsNullOrWhiteSpace(colunas[i].NomeEstado) ? colunas[i].NomeEstado : "RC";
+                        }
+                        else
+                        {
+                            v = colunas[i].Valor ?? "";
+                        }
                         bgCell = GetCorAnoIntensa(colunas[i].Ano);
                     }
                     gridM.AddCell(new PdfPCell(new Phrase(v, fBase)) { BackgroundColor = bgCell, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
@@ -340,9 +348,10 @@ namespace DCGest.Classes
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 conn.Open();
-                string sql = "SELECT n.Cod_NotaMod, d.Ano as AnoDisciplina, d.Designacao as Disciplina, d.Tipo, m.Designacao as Modulo, m.Cod_Modulo, n.Valor " +
+                string sql = "SELECT n.Cod_NotaMod, d.Ano as AnoDisciplina, d.Designacao as Disciplina, d.Tipo, m.Designacao as Modulo, m.Cod_Modulo, n.Valor, a.Alinea as AlineaLetra " +
                              "FROM NotaMod n INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo " +
                              "INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc " +
+                             "LEFT JOIN Alineas a ON n.Cod_Estado = a.Cod_alinea " +
                              "WHERE n.Cod_Aluno = @Aluno ORDER BY d.Tipo, d.Designacao, m.Cod_Modulo";
                 using (MySqlCommand cmd = new MySqlCommand(sql, conn))
                 {
@@ -353,15 +362,20 @@ namespace DCGest.Classes
                         {
                             string v = r["Valor"] != DBNull.Value ? r["Valor"].ToString().Trim() : null;
                             if (v == string.Empty) v = null;
-                            string a = r["AnoDisciplina"].ToString() + "º Ano";
-                            l.Add(new NotaModulo(
+                            string ano = r["AnoDisciplina"].ToString() + "º Ano";
+
+                            string sigla = r["AlineaLetra"] != DBNull.Value ? r["AlineaLetra"].ToString().Trim() : string.Empty;
+
+                            NotaModulo nm = new NotaModulo(
                                 Convert.ToInt32(r["Cod_NotaMod"]),
                                 codAluno,
                                 Convert.ToInt32(r["Cod_Modulo"]),
-                                v, null, a,
+                                v, null, ano,
                                 r["Modulo"].ToString(),
                                 r["Disciplina"].ToString(),
-                                r["Tipo"].ToString()));
+                                r["Tipo"].ToString());
+                            nm.NomeEstado = sigla;
+                            l.Add(nm);
                         }
                     }
                 }

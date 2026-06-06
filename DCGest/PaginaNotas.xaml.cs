@@ -1,7 +1,6 @@
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -12,8 +11,17 @@ namespace DCGest
     public partial class PaginaNotas : Window
     {
         private const double LimiteProgressaoAno = 0.75;
-
         private const string LetraChumbo = "RC";
+
+        string caminho = BD.CaminhoBD;
+        int codAluno;
+        List<NotaModulo> listaNotas = new List<NotaModulo>();
+        List<NotaModulo> todasAsNotasModulos = new List<NotaModulo>();
+        List<MediaDisciplina> listaMedias = new List<MediaDisciplina>();
+        NotaModulo notaFCT = null;
+        NotaModulo notaPAP = null;
+        Dictionary<int, string> _valoresOriginais = new Dictionary<int, string>();
+        public List<Alinea> ListaAlineas { get; private set; } = new List<Alinea>();
 
         public PaginaNotas(int cod)
         {
@@ -33,18 +41,6 @@ namespace DCGest
                 this.Close();
             }
         }
-
-        string caminho = BD.CaminhoBD;
-        int codAluno;
-        List<NotaModulo> listaNotas = new List<NotaModulo>();
-        List<MediaDisciplina> listaMedias = new List<MediaDisciplina>();
-        NotaModulo notaFCT = null;
-        NotaModulo notaPAP = null;
-
-        Dictionary<int, string> _valoresOriginais = new Dictionary<int, string>();
-
-        public List<Alinea> ListaAlineas { get; private set; } = new List<Alinea>();
-
 
         private void CarregarAlineas()
         {
@@ -98,13 +94,14 @@ namespace DCGest
             try
             {
                 listaNotas.Clear();
+                todasAsNotasModulos.Clear();
                 txt_notaFCT.Text = "0";
                 txt_notaPAP.Text = "0";
                 notaFCT = null;
                 notaPAP = null;
+                _valoresOriginais.Clear();
 
                 List<NotaModulo> todasAsNotas = new List<NotaModulo>();
-                _valoresOriginais.Clear();
 
                 using (MySqlConnection conexao = new MySqlConnection(caminho))
                 {
@@ -128,15 +125,14 @@ namespace DCGest
                         {
                             while (leitor.Read())
                             {
-                                string tipo = leitor["Tipo"].ToString();
-                                string discNome = leitor["Disciplina"].ToString();
-                                string anoNota = leitor["AnoDisciplina"].ToString() + "º Ano";
-
                                 string valorDaNota = null;
                                 if (leitor["Valor"] != DBNull.Value)
                                 {
                                     valorDaNota = leitor["Valor"].ToString().Trim();
-                                    if (valorDaNota == string.Empty) valorDaNota = null;
+                                    if (valorDaNota == string.Empty)
+                                    {
+                                        valorDaNota = null;
+                                    }
                                 }
 
                                 DateTime? dataEfetua = null;
@@ -150,10 +146,30 @@ namespace DCGest
                                 if (leitor["Cod_Estado"] != DBNull.Value)
                                 {
                                     codEstado = Convert.ToInt32(leitor["Cod_Estado"]);
-                                    string al = leitor["AlineaLetra"] != DBNull.Value ? leitor["AlineaLetra"].ToString().Trim() : string.Empty;
-                                    string regra = leitor["Regra"] != DBNull.Value ? leitor["Regra"].ToString() : string.Empty;
-                                    nomeEstado = string.IsNullOrEmpty(al) ? regra : $"{al} – {regra}";
+
+                                    string al = string.Empty;
+                                    if (leitor["AlineaLetra"] != DBNull.Value)
+                                    {
+                                        al = leitor["AlineaLetra"].ToString().Trim();
+                                    }
+
+                                    string regra = string.Empty;
+                                    if (leitor["Regra"] != DBNull.Value)
+                                    {
+                                        regra = leitor["Regra"].ToString();
+                                    }
+
+                                    if (string.IsNullOrEmpty(al))
+                                    {
+                                        nomeEstado = regra;
+                                    }
+                                    else
+                                    {
+                                        nomeEstado = al + " – " + regra;
+                                    }
                                 }
+
+                                string anoNota = leitor["AnoDisciplina"].ToString() + "º Ano";
 
                                 NotaModulo n = new NotaModulo(
                                     Convert.ToInt32(leitor["Cod_NotaMod"]),
@@ -163,8 +179,8 @@ namespace DCGest
                                     dataEfetua,
                                     anoNota,
                                     leitor["Modulo"].ToString(),
-                                    discNome,
-                                    tipo
+                                    leitor["Disciplina"].ToString(),
+                                    leitor["Tipo"].ToString()
                                 );
                                 n.Cod_Estado = codEstado;
                                 n.NomeEstado = nomeEstado;
@@ -191,9 +207,13 @@ namespace DCGest
                             txt_notaPAP.Text = n.Valor ?? "0";
                         }
                     }
-                    else if (n.Ano == ano)
+                    else
                     {
-                        listaNotas.Add(n);
+                        todasAsNotasModulos.Add(n);
+                        if (n.Ano == ano)
+                        {
+                            listaNotas.Add(n);
+                        }
                     }
                 }
 
@@ -211,57 +231,76 @@ namespace DCGest
         private string ValidarENormalizarModulo(string input, out string erro)
         {
             erro = null;
-            if (string.IsNullOrWhiteSpace(input)) return null;
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return null;
+            }
 
             string trimmed = input.Trim().ToUpper();
 
-            if (trimmed == LetraChumbo) return LetraChumbo;
-
-            string normalizado = trimmed.Replace(",", ".");
-            if (double.TryParse(normalizado, NumberStyles.Any, CultureInfo.InvariantCulture, out double valor))
+            if (trimmed == LetraChumbo)
             {
-                if (valor < 0)
-                {
-                    erro = "A nota não pode ser negativa.";
-                    return null;
-                }
-                if (valor > 20)
-                {
-                    erro = "A nota não pode ser superior a 20.";
-                    return null;
-                }
-                if (valor < 9.5)
-                {
-                    return LetraChumbo;
-                }
-                return ((int)Math.Round(valor)).ToString();
+                return LetraChumbo;
             }
 
-            erro = $"'{input}' não é uma nota válida. Introduza um valor entre 0 e 20 ou '{LetraChumbo}'.";
-            return null;
+            string normalizado = trimmed.Replace(",", ".");
+
+            if (!double.TryParse(normalizado, out double valor))
+            {
+                erro = "'" + input + "' não é uma nota válida. Introduza um valor entre 0 e 20 ou '" + LetraChumbo + "'.";
+                return null;
+            }
+
+            if (valor < 0)
+            {
+                erro = "A nota não pode ser negativa.";
+                return null;
+            }
+
+            if (valor > 20)
+            {
+                erro = "A nota não pode ser superior a 20.";
+                return null;
+            }
+
+            if (valor < 9.5)
+            {
+                return LetraChumbo;
+            }
+
+            return ((int)Math.Round(valor)).ToString();
         }
 
         private bool ValidarNotaComponente(string input, string nomeComponente, out double resultado)
         {
             resultado = 0;
-            if (string.IsNullOrWhiteSpace(input)) return true;
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return true;
+            }
 
             string normalizado = input.Trim().Replace(",", ".");
-            if (!double.TryParse(normalizado, NumberStyles.Any, CultureInfo.InvariantCulture, out double valor))
+
+            if (!double.TryParse(normalizado, out double valor))
             {
-                MessageBox.Show($"Nota {nomeComponente} inválida: '{input}' não é um número.", "Nota Inválida", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Nota " + nomeComponente + " inválida: '" + input + "' não é um número.", "Nota Inválida", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
+
             if (valor < 0)
             {
-                MessageBox.Show($"Nota {nomeComponente} não pode ser negativa.", "Nota Inválida", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Nota " + nomeComponente + " não pode ser negativa.", "Nota Inválida", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
+
             if (valor > 20)
             {
-                MessageBox.Show($"Nota {nomeComponente} não pode ser superior a 20.", "Nota Inválida", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Nota " + nomeComponente + " não pode ser superior a 20.", "Nota Inválida", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
+
             resultado = valor;
             return true;
         }
@@ -295,10 +334,21 @@ namespace DCGest
                                 string anoStr = r["Ano"].ToString();
                                 int total = Convert.ToInt32(r["Total"]);
                                 int positivos = Convert.ToInt32(r["Positivos"]);
-                                double pct = total > 0 ? (double)positivos / total : 0;
 
-                                if (anoStr == "1") pct1 = pct;
-                                else if (anoStr == "2") pct2 = pct;
+                                double pct = 0;
+                                if (total > 0)
+                                {
+                                    pct = (double)positivos / total;
+                                }
+
+                                if (anoStr == "1")
+                                {
+                                    pct1 = pct;
+                                }
+                                else if (anoStr == "2")
+                                {
+                                    pct2 = pct;
+                                }
                             }
                         }
                     }
@@ -309,27 +359,29 @@ namespace DCGest
                     btn_ano2.IsEnabled = ano2Desbloqueado;
                     btn_ano3.IsEnabled = ano3Desbloqueado;
 
-                    btn_ano2.ToolTip = ano2Desbloqueado
-                        ? null
-                        : $"Necessário mais de {LimiteProgressaoAno:P0} dos módulos do 1.º Ano aprovados. Actual: {pct1:P0}";
+                    if (ano2Desbloqueado)
+                    {
+                        btn_ano2.ToolTip = null;
+                    }
+                    else
+                    {
+                        btn_ano2.ToolTip = "Necessário mais de " + LimiteProgressaoAno.ToString("P0") + " dos módulos do 1.º Ano aprovados. Actual: " + pct1.ToString("P0");
+                    }
 
-                    btn_ano3.ToolTip = ano3Desbloqueado
-                        ? null
-                        : $"Necessário mais de {LimiteProgressaoAno:P0} dos módulos do 2.º Ano aprovados. Actual: {pct2:P0}";
+                    if (ano3Desbloqueado)
+                    {
+                        btn_ano3.ToolTip = null;
+                    }
+                    else
+                    {
+                        btn_ano3.ToolTip = "Necessário mais de " + LimiteProgressaoAno.ToString("P0") + " dos módulos do 2.º Ano aprovados. Actual: " + pct2.ToString("P0");
+                    }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Erro ao verificar progressão de anos: " + ex.Message);
+                MessageBox.Show("Erro ao verificar progressão de anos: " + ex.Message);
             }
-        }
-
-        private int GetPrioridadeTipo(string tipo)
-        {
-            if (tipo.ToLower().Contains("sociocultural")) return 1;
-            if (tipo.ToLower().Contains("científica")) return 2;
-            if (tipo.ToLower().Contains("técnica")) return 3;
-            return 4;
         }
 
         private void CalcularResumos()
@@ -341,8 +393,10 @@ namespace DCGest
                 Dictionary<string, List<NotaModulo>> grupos = new Dictionary<string, List<NotaModulo>>();
                 foreach (NotaModulo nota in listaNotas)
                 {
-                    if (grupos.ContainsKey(nota.NomeDisciplina) == false)
+                    if (!grupos.ContainsKey(nota.NomeDisciplina))
+                    {
                         grupos.Add(nota.NomeDisciplina, new List<NotaModulo>());
+                    }
                     grupos[nota.NomeDisciplina].Add(nota);
                 }
 
@@ -355,13 +409,21 @@ namespace DCGest
                         int prioridadeI = GetPrioridadeTipo(grupos[chaves[i]][0].TipoDisciplina);
                         int prioridadeJ = GetPrioridadeTipo(grupos[chaves[j]][0].TipoDisciplina);
 
+                        bool trocar = false;
                         if (prioridadeI > prioridadeJ)
                         {
-                            string temp = chaves[i]; chaves[i] = chaves[j]; chaves[j] = temp;
+                            trocar = true;
                         }
                         else if (prioridadeI == prioridadeJ && string.Compare(chaves[i], chaves[j]) > 0)
                         {
-                            string temp = chaves[i]; chaves[i] = chaves[j]; chaves[j] = temp;
+                            trocar = true;
+                        }
+
+                        if (trocar)
+                        {
+                            string temp = chaves[i];
+                            chaves[i] = chaves[j];
+                            chaves[j] = temp;
                         }
                     }
                 }
@@ -391,8 +453,17 @@ namespace DCGest
                         }
                     }
 
-                    double mediaCalculada = contadorModulosComNota > 0 ? somaNotas / contadorModulosComNota : 0;
-                    string estado = reprovouAlgumModulo ? "SC" : "C";
+                    double mediaCalculada = 0;
+                    if (contadorModulosComNota > 0)
+                    {
+                        mediaCalculada = somaNotas / contadorModulosComNota;
+                    }
+
+                    string estado = "SC";
+                    if (!reprovouAlgumModulo)
+                    {
+                        estado = "C";
+                    }
 
                     listaMedias.Add(new MediaDisciplina(nome, tipo, mediaCalculada, contadorModulosComNota, estado));
                 }
@@ -416,6 +487,7 @@ namespace DCGest
                             somaCien += vNum.Value;
                             contCien++;
                         }
+
                         if (n.TipoDisciplina.ToLower().Contains("técnica"))
                         {
                             somaTec += vNum.Value;
@@ -424,26 +496,74 @@ namespace DCGest
                     }
                 }
 
-                txt_mediaGeral.Text = contGeral > 0 ? (somaGeral / contGeral).ToString("N2") : "0,00";
-                txt_mediaCientifica.Text = contCien > 0 ? (somaCien / contCien).ToString("N2") : "0,00";
-                txt_mediaTecnica.Text = contTec > 0 ? (somaTec / contTec).ToString("N2") : "0,00";
+                if (contGeral > 0)
+                {
+                    txt_mediaGeral.Text = (somaGeral / contGeral).ToString("N2");
+                }
+                else
+                {
+                    txt_mediaGeral.Text = "0,00";
+                }
+
+                if (contCien > 0)
+                {
+                    txt_mediaCientifica.Text = (somaCien / contCien).ToString("N2");
+                }
+                else
+                {
+                    txt_mediaCientifica.Text = "0,00";
+                }
+
+                if (contTec > 0)
+                {
+                    txt_mediaTecnica.Text = (somaTec / contTec).ToString("N2");
+                }
+                else
+                {
+                    txt_mediaTecnica.Text = "0,00";
+                }
 
                 double fct = 0;
                 if (!string.IsNullOrWhiteSpace(txt_notaFCT.Text))
-                    double.TryParse(txt_notaFCT.Text.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out fct);
+                {
+                    double.TryParse(txt_notaFCT.Text.Replace(",", "."), out fct);
+                }
 
                 double pap = 0;
                 if (!string.IsNullOrWhiteSpace(txt_notaPAP.Text))
-                    double.TryParse(txt_notaPAP.Text.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out pap);
+                {
+                    double.TryParse(txt_notaPAP.Text.Replace(",", "."), out pap);
+                }
 
-                double mediaDasNotas = contGeral > 0 ? somaGeral / contGeral : 0;
+                double somaTodasNotas = 0;
+                int contTodasNotas = 0;
+                foreach (NotaModulo n in todasAsNotasModulos)
+                {
+                    double? vNum = n.ValorNumerico;
+                    if (vNum != null && vNum > 0)
+                    {
+                        somaTodasNotas += vNum.Value;
+                        contTodasNotas++;
+                    }
+                }
+
+                double mediaDasNotas = contTodasNotas > 0 ? somaTodasNotas / contTodasNotas : 0;
+
                 double mFinal = (mediaDasNotas * 0.66) + (fct * 0.11) + (pap * 0.23);
                 lbl_mediaFinal.Text = mFinal.ToString("N1");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Erro cálculo: " + ex.Message);
+                MessageBox.Show("Erro ao calcular resumos: " + ex.Message);
             }
+        }
+
+        private int GetPrioridadeTipo(string tipo)
+        {
+            if (tipo.ToLower().Contains("sociocultural")) { return 1; }
+            if (tipo.ToLower().Contains("científica")) { return 2; }
+            if (tipo.ToLower().Contains("técnica")) { return 3; }
+            return 4;
         }
 
         private void Btn_Click_Editar(object sender, RoutedEventArgs e)
@@ -451,18 +571,34 @@ namespace DCGest
             MessageBoxResult res = MessageBox.Show(
                 "Deseja guardar todas as alterações feitas nas notas deste aluno (incluindo FCT/PAP)?",
                 "Confirmar Alterações", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (res == MessageBoxResult.No) return;
+
+            if (res == MessageBoxResult.No)
+            {
+                return;
+            }
 
             try
             {
                 List<NotaModulo> notasParaSalvar = new List<NotaModulo>();
+
                 foreach (NotaModulo n in listaNotas)
                 {
+                    if (double.TryParse(n.Valor?.Replace(",", "."), out double testVal) && testVal < 0)
+                    {
+                        Alinea alineaN = ListaAlineas.Find(a => a.AlineaLetra == "n)");
+                        if (alineaN != null)
+                        {
+                            n.Cod_Estado = alineaN.Cod_Alinea;
+                        }
+                        n.Valor = null;
+                        notasParaSalvar.Add(n);
+                        continue;
+                    }
+
                     string normalizado = ValidarENormalizarModulo(n.Valor, out string erroNota);
                     if (!string.IsNullOrEmpty(erroNota))
                     {
-                        MessageBox.Show($"Nota inválida em '{n.NomeModulo}': {erroNota}",
-                            "Erro de Validação", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        MessageBox.Show("Nota inválida em '" + n.NomeModulo + "': " + erroNota, "Erro de Validação", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
                     n.Valor = normalizado;
@@ -471,19 +607,39 @@ namespace DCGest
 
                 if (notaFCT != null)
                 {
-                    if (!ValidarNotaComponente(txt_notaFCT.Text, "FCT", out double fctVal)) return;
-                    notaFCT.Valor = !string.IsNullOrWhiteSpace(txt_notaFCT.Text)
-                        ? ((int)Math.Round(fctVal)).ToString()
-                        : null;
+                    if (!ValidarNotaComponente(txt_notaFCT.Text, "FCT", out double fctVal))
+                    {
+                        return;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(txt_notaFCT.Text))
+                    {
+                        notaFCT.Valor = ((int)Math.Round(fctVal)).ToString();
+                    }
+                    else
+                    {
+                        notaFCT.Valor = null;
+                    }
+
                     notasParaSalvar.Add(notaFCT);
                 }
 
                 if (notaPAP != null)
                 {
-                    if (!ValidarNotaComponente(txt_notaPAP.Text, "PAP", out double papVal)) return;
-                    notaPAP.Valor = !string.IsNullOrWhiteSpace(txt_notaPAP.Text)
-                        ? ((int)Math.Round(papVal)).ToString()
-                        : null;
+                    if (!ValidarNotaComponente(txt_notaPAP.Text, "PAP", out double papVal))
+                    {
+                        return;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(txt_notaPAP.Text))
+                    {
+                        notaPAP.Valor = ((int)Math.Round(papVal)).ToString();
+                    }
+                    else
+                    {
+                        notaPAP.Valor = null;
+                    }
+
                     notasParaSalvar.Add(notaPAP);
                 }
 
@@ -497,22 +653,47 @@ namespace DCGest
                         {
                             foreach (NotaModulo nota in notasParaSalvar)
                             {
-                                string original = _valoresOriginais.ContainsKey(nota.Cod_NotaMod)
-                                    ? _valoresOriginais[nota.Cod_NotaMod]
-                                    : nota.Valor;
+                                string original = nota.Valor;
+                                if (_valoresOriginais.ContainsKey(nota.Cod_NotaMod))
+                                {
+                                    original = _valoresOriginais[nota.Cod_NotaMod];
+                                }
+
                                 if (nota.Valor != original)
                                 {
-                                    nota.Data_Efetua = nota.Valor != null ? DateTime.Now : (DateTime?)null;
+                                    if (nota.Valor != null)
+                                    {
+                                        nota.Data_Efetua = DateTime.Now;
+                                    }
+                                    else
+                                    {
+                                        nota.Data_Efetua = null;
+                                    }
+                                }
+
+                                object valorParam = DBNull.Value;
+                                if (nota.Valor != null)
+                                {
+                                    valorParam = nota.Valor;
+                                }
+
+                                object dataParam = DBNull.Value;
+                                if (nota.Data_Efetua != null)
+                                {
+                                    dataParam = nota.Data_Efetua;
+                                }
+
+                                object estadoParam = DBNull.Value;
+                                if (nota.Cod_Estado != null && nota.Cod_Estado != 0)
+                                {
+                                    estadoParam = nota.Cod_Estado;
                                 }
 
                                 string sql = "UPDATE NotaMod SET Valor = @Valor, Data_Efetua = @Data, Cod_Estado = @Estado WHERE Cod_NotaMod = @Id";
                                 using (MySqlCommand comando = new MySqlCommand(sql, conexao, transacao))
                                 {
-                                    comando.Parameters.AddWithValue("@Valor", (object)nota.Valor ?? DBNull.Value);
-                                    comando.Parameters.AddWithValue("@Data", (object)nota.Data_Efetua ?? DBNull.Value);
-                                    object estadoParam = (nota.Cod_Estado == null || nota.Cod_Estado == 0)
-                                        ? (object)DBNull.Value
-                                        : nota.Cod_Estado;
+                                    comando.Parameters.AddWithValue("@Valor", valorParam);
+                                    comando.Parameters.AddWithValue("@Data", dataParam);
                                     comando.Parameters.AddWithValue("@Estado", estadoParam);
                                     comando.Parameters.AddWithValue("@Id", nota.Cod_NotaMod);
                                     comando.ExecuteNonQuery();
@@ -521,52 +702,7 @@ namespace DCGest
 
                             transacao.Commit();
 
-                            using (MySqlConnection conexaoStatus = new MySqlConnection(caminho))
-                            {
-                                conexaoStatus.Open();
-
-                                string sqlTotal = "SELECT COUNT(*) FROM NotaMod n " +
-                                                  "INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo " +
-                                                  "INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc " +
-                                                  "WHERE n.Cod_Aluno = @Aluno AND d.Tipo LIKE '%Técnica%'";
-
-                                int totalTecnicos = 0;
-                                using (MySqlCommand cmdTotal = new MySqlCommand(sqlTotal, conexaoStatus))
-                                {
-                                    cmdTotal.Parameters.AddWithValue("@Aluno", codAluno);
-                                    totalTecnicos = Convert.ToInt32(cmdTotal.ExecuteScalar());
-                                }
-
-                                string sqlPositivos = "SELECT COUNT(*) FROM NotaMod n " +
-                                                      "INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo " +
-                                                      "INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc " +
-                                                      "WHERE n.Cod_Aluno = @Aluno AND d.Tipo LIKE '%Técnica%' " +
-                                                      "AND n.Valor REGEXP '^[0-9]+$' AND n.Valor + 0 >= 10";
-
-                                int concluidosTecnicos = 0;
-                                using (MySqlCommand cmdPos = new MySqlCommand(sqlPositivos, conexaoStatus))
-                                {
-                                    cmdPos.Parameters.AddWithValue("@Aluno", codAluno);
-                                    concluidosTecnicos = Convert.ToInt32(cmdPos.ExecuteScalar());
-                                }
-
-                                if (totalTecnicos > 0)
-                                {
-                                    double percentagem = (double)concluidosTecnicos / totalTecnicos;
-                                    if (percentagem > 0.90)
-                                    {
-                                        string sqlUpdate = "UPDATE aluno SET Estado_Estagio = 'Pronto' WHERE Cod_Aluno = @Aluno";
-                                        using (MySqlCommand cmdUpd = new MySqlCommand(sqlUpdate, conexaoStatus))
-                                        {
-                                            cmdUpd.Parameters.AddWithValue("@Aluno", codAluno);
-                                            cmdUpd.ExecuteNonQuery();
-                                        }
-                                        MessageBox.Show(
-                                            "O aluno atingiu mais de 90% dos módulos técnicos positivos! Estado de Estágio atualizado para 'Pronto'.",
-                                            "Parabéns", MessageBoxButton.OK, MessageBoxImage.Information);
-                                    }
-                                }
-                            }
+                            AtualizarEstadoEstagio();
 
                             dg_alunos.Items.Refresh();
                             CalcularResumos();
@@ -584,6 +720,54 @@ namespace DCGest
             catch (Exception ex)
             {
                 MessageBox.Show("Erro de conexão ao guardar notas: " + ex.Message);
+            }
+        }
+
+        private void AtualizarEstadoEstagio()
+        {
+            using (MySqlConnection conexao = new MySqlConnection(caminho))
+            {
+                conexao.Open();
+
+                string sqlTotal = @"SELECT COUNT(*) FROM NotaMod n
+                                    INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo
+                                    INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc
+                                    WHERE n.Cod_Aluno = @Aluno AND d.Tipo LIKE '%Técnica%'";
+
+                int totalTecnicos = 0;
+                using (MySqlCommand cmd = new MySqlCommand(sqlTotal, conexao))
+                {
+                    cmd.Parameters.AddWithValue("@Aluno", codAluno);
+                    totalTecnicos = Convert.ToInt32(cmd.ExecuteScalar());
+                }
+
+                string sqlPositivos = @"SELECT COUNT(*) FROM NotaMod n
+                                        INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo
+                                        INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc
+                                        WHERE n.Cod_Aluno = @Aluno AND d.Tipo LIKE '%Técnica%'
+                                        AND n.Valor REGEXP '^[0-9]+$' AND n.Valor + 0 >= 10";
+
+                int concluidosTecnicos = 0;
+                using (MySqlCommand cmd = new MySqlCommand(sqlPositivos, conexao))
+                {
+                    cmd.Parameters.AddWithValue("@Aluno", codAluno);
+                    concluidosTecnicos = Convert.ToInt32(cmd.ExecuteScalar());
+                }
+
+                if (totalTecnicos > 0)
+                {
+                    double percentagem = (double)concluidosTecnicos / totalTecnicos;
+                    if (percentagem > 0.90)
+                    {
+                        string sqlUpdate = "UPDATE aluno SET Estado_Estagio = 'Pronto' WHERE Cod_Aluno = @Aluno";
+                        using (MySqlCommand cmd = new MySqlCommand(sqlUpdate, conexao))
+                        {
+                            cmd.Parameters.AddWithValue("@Aluno", codAluno);
+                            cmd.ExecuteNonQuery();
+                        }
+                        MessageBox.Show("O aluno atingiu mais de 90% dos módulos técnicos positivos! Estado de Estágio atualizado para 'Pronto'.", "Parabéns", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
             }
         }
 
@@ -617,20 +801,20 @@ namespace DCGest
 
         private void AtualizarBotoes(Button botaoSelecionado)
         {
-            Brush CorAtivo = (Brush)new BrushConverter().ConvertFrom("#293472");
-            Brush CorInativo = (Brush)new BrushConverter().ConvertFrom("#EFE6D8");
-            Brush TextoAtivo = Brushes.White;
-            Brush TextoInativo = (Brush)new BrushConverter().ConvertFrom("#293472");
+            Brush corAtivo = (Brush)new BrushConverter().ConvertFrom("#293472");
+            Brush corInativo = (Brush)new BrushConverter().ConvertFrom("#EFE6D8");
+            Brush textoAtivo = Brushes.White;
+            Brush textoInativo = (Brush)new BrushConverter().ConvertFrom("#293472");
 
-            btn_ano1.Background = CorInativo;
-            btn_ano1.Foreground = TextoInativo;
-            btn_ano2.Background = CorInativo;
-            btn_ano2.Foreground = TextoInativo;
-            btn_ano3.Background = CorInativo;
-            btn_ano3.Foreground = TextoInativo;
+            btn_ano1.Background = corInativo;
+            btn_ano1.Foreground = textoInativo;
+            btn_ano2.Background = corInativo;
+            btn_ano2.Foreground = textoInativo;
+            btn_ano3.Background = corInativo;
+            btn_ano3.Foreground = textoInativo;
 
-            botaoSelecionado.Background = CorAtivo;
-            botaoSelecionado.Foreground = TextoAtivo;
+            botaoSelecionado.Background = corAtivo;
+            botaoSelecionado.Foreground = textoAtivo;
         }
     }
 }
