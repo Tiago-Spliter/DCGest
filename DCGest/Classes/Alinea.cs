@@ -1,3 +1,7 @@
+using MySql.Data.MySqlClient;
+using System;
+using System.Collections.Generic;
+
 namespace DCGest.Classes
 {
     public class Alinea
@@ -7,8 +11,14 @@ namespace DCGest.Classes
         public string Regra { get; set; } = string.Empty;
         public string Descricao { get; set; } = string.Empty;
 
-        public string Display => string.IsNullOrWhiteSpace(AlineaLetra)
-            ? Regra
-            : $"{AlineaLetra} – {Regra}";
+        public Alinea() { }
+
+        public Alinea(int codAlinea, string alineaLetra, string regra, string descricao)
+        {
+            Cod_Alinea = codAlinea;
+            AlineaLetra = alineaLetra;
+            Regra = regra;
+            Descricao = descricao;
+        }
     }
 }

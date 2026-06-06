@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 
 namespace DCGest.Classes
 {
@@ -23,8 +22,11 @@ namespace DCGest.Classes
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(Valor)) return null;
-                if (double.TryParse(Valor, NumberStyles.Any, CultureInfo.InvariantCulture, out double v)) return v;
+                if (double.TryParse(Valor, out double v))
+                {
+                    return v;
+                }
+
                 return null;
             }
         }

@@ -25,11 +25,13 @@ namespace DCGest.Classes
                 conn.Open();
                 string sql = "SELECT Cod_Letivo, Intervalo FROM anosletivos ORDER BY Intervalo";
                 using (MySqlCommand cmd = new MySqlCommand(sql, conn))
-                using (MySqlDataReader r = cmd.ExecuteReader())
                 {
-                    while (r.Read())
+                    using (MySqlDataReader r = cmd.ExecuteReader())
                     {
-                        lista.Add(new AnoLetivo(Convert.ToInt32(r["Cod_Letivo"]), r["Intervalo"].ToString()));
+                        while (r.Read())
+                        {
+                            lista.Add(new AnoLetivo(Convert.ToInt32(r["Cod_Letivo"]), r["Intervalo"].ToString()));
+                        }
                     }
                 }
             }
