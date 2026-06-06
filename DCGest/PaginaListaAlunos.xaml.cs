@@ -1,4 +1,3 @@
-using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -16,9 +15,6 @@ namespace DCGest
 
             CarregarEntradas();
         }
-
-        string caminho = BD.CaminhoBD;
-
 
         List<AnoLetivo> listaAnos = new List<AnoLetivo>();
         List<Curso> listaCursos = new List<Curso>();
@@ -92,92 +88,14 @@ namespace DCGest
         {
             try
             {
-                using (MySqlConnection conexao = new MySqlConnection(caminho))
-                {
-                    conexao.Open();
+                int? codLetivo = cmb_anoletivo.SelectedValue != null && (int)cmb_anoletivo.SelectedValue != 0
+                    ? (int?)cmb_anoletivo.SelectedValue : null;
+                int? codCurso = cmb_curso.SelectedValue != null && (int)cmb_curso.SelectedValue != 0
+                    ? (int?)cmb_curso.SelectedValue : null;
 
-                    string sql_Alunos = "SELECT a.*, c.Nome_Curso, o.Nome_Orientador, t.Nome as Nome_Turma, al.Intervalo as Intervalo_Letivo " +
-                                       "FROM aluno a " +
-                                       "LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso " +
-                                       "LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador " +
-                                       "LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma " +
-                                       "LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo " +
-                                       "WHERE 1=1";
-
-                    if (cmb_anoletivo.SelectedValue != null)
-                    {
-                        if ((int)cmb_anoletivo.SelectedValue != 0)
-                        {
-                            sql_Alunos = sql_Alunos + " AND a.Cod_Letivo = @letivo";
-                        }
-                    }
-
-                    if (cmb_curso.SelectedValue != null)
-                    {
-                        if ((int)cmb_curso.SelectedValue != 0)
-                        {
-                            sql_Alunos = sql_Alunos + " AND a.Cod_Curso = @curso";
-                        }
-                    }
-
-                    using (MySqlCommand comando = new MySqlCommand(sql_Alunos, conexao))
-                    {
-                        if (cmb_anoletivo.SelectedValue != null)
-                        {
-                            if ((int)cmb_anoletivo.SelectedValue != 0)
-                            {
-                                comando.Parameters.AddWithValue("@letivo", cmb_anoletivo.SelectedValue);
-                            }
-                        }
-
-                        if (cmb_curso.SelectedValue != null)
-                        {
-                            if ((int)cmb_curso.SelectedValue != 0)
-                            {
-                                comando.Parameters.AddWithValue("@curso", cmb_curso.SelectedValue);
-                            }
-                        }
-
-                        listaAlunos.Clear();
-
-                        using (MySqlDataReader leitor = comando.ExecuteReader())
-                        {
-                            while (leitor.Read())
-                            {
-                                int? codOri = null;
-                                if (leitor["Cod_Ori"] != DBNull.Value)
-                                {
-                                    codOri = Convert.ToInt32(leitor["Cod_Ori"]);
-                                }
-
-                                string nomeOri = "N/A";
-                                if (leitor["Nome_Orientador"] != DBNull.Value)
-                                {
-                                    nomeOri = leitor["Nome_Orientador"].ToString();
-                                }
-
-                                Aluno a = new Aluno(
-                                    Convert.ToInt32(leitor["Cod_Aluno"]),
-                                    leitor["Nome_Aluno"].ToString(),
-                                    Convert.ToInt32(leitor["Cod_Turma"]),
-                                    Convert.ToInt32(leitor["Cod_Curso"]),
-                                    leitor["Estado_Estagio"].ToString(),
-                                    codOri,
-                                    Convert.ToInt32(leitor["Cod_Letivo"]),
-                                    leitor["Nome_Curso"].ToString(),
-                                    nomeOri,
-                                    leitor["Nome_Turma"].ToString(),
-                                    leitor["Intervalo_Letivo"].ToString()
-                                );
-
-                                listaAlunos.Add(a);
-                            }
-                        }
-
-                        dg_alunos.ItemsSource = null;
-                        dg_alunos.ItemsSource = listaAlunos;
-                    }
-                }
+                listaAlunos = Aluno.ObterComFiltros(codLetivo: codLetivo, codCurso: codCurso);
+                dg_alunos.ItemsSource = null;
+                dg_alunos.ItemsSource = listaAlunos;
             }
             catch (Exception ex)
             {
@@ -189,112 +107,16 @@ namespace DCGest
         {
             try
             {
-                using (MySqlConnection conexao = new MySqlConnection(caminho))
-                {
-                    conexao.Open();
+                int? codAluno = int.TryParse(txt_codigo.Text, out int cod) ? (int?)cod : null;
+                string nomeAluno = !string.IsNullOrEmpty(txt_nome.Text) ? txt_nome.Text : null;
+                int? codTurma = cmb_turma.SelectedValue != null && (int)cmb_turma.SelectedValue != 0
+                    ? (int?)cmb_turma.SelectedValue : null;
+                int? codOrientador = cmb_orientador.SelectedValue != null && (int)cmb_orientador.SelectedValue != 0
+                    ? (int?)cmb_orientador.SelectedValue : null;
 
-                    string sql_Filtro = "SELECT a.*, c.Nome_Curso, o.Nome_Orientador, t.Nome as Nome_Turma, al.Intervalo as Intervalo_Letivo " +
-                                       "FROM aluno a " +
-                                       "LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso " +
-                                       "LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador " +
-                                       "LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma " +
-                                       "LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo " +
-                                       "WHERE 1=1";
-
-                    if (txt_codigo.Text != "")
-                    {
-                        sql_Filtro = sql_Filtro + " AND a.Cod_Aluno = @cod";
-                    }
-
-                    if (txt_nome.Text != "")
-                    {
-                        sql_Filtro = sql_Filtro + " AND a.Nome_Aluno LIKE @nome";
-                    }
-
-                    if (cmb_turma.SelectedValue != null)
-                    {
-                        if ((int)cmb_turma.SelectedValue != 0)
-                        {
-                            sql_Filtro = sql_Filtro + " AND a.Cod_Turma = @turma";
-                        }
-                    }
-
-                    if (cmb_orientador.SelectedValue != null)
-                    {
-                        if ((int)cmb_orientador.SelectedValue != 0)
-                        {
-                            sql_Filtro = sql_Filtro + " AND a.Cod_Ori = @orientador";
-                        }
-                    }
-
-                    using (MySqlCommand comando = new MySqlCommand(sql_Filtro, conexao))
-                    {
-                        if (txt_codigo.Text != "")
-                        {
-                            comando.Parameters.AddWithValue("@cod", txt_codigo.Text);
-                        }
-
-                        if (txt_nome.Text != "")
-                        {
-                            comando.Parameters.AddWithValue("@nome", "%" + txt_nome.Text + "%");
-                        }
-
-                        if (cmb_turma.SelectedValue != null)
-                        {
-                            if ((int)cmb_turma.SelectedValue != 0)
-                            {
-                                comando.Parameters.AddWithValue("@turma", cmb_turma.SelectedValue);
-                            }
-                        }
-
-                        if (cmb_orientador.SelectedValue != null)
-                        {
-                            if ((int)cmb_orientador.SelectedValue != 0)
-                            {
-                                comando.Parameters.AddWithValue("@orientador", cmb_orientador.SelectedValue);
-                            }
-                        }
-
-                        listaAlunos.Clear();
-
-                        using (MySqlDataReader leitor = comando.ExecuteReader())
-                        {
-                            while (leitor.Read())
-                            {
-                                int? codOri = null;
-                                if (leitor["Cod_Ori"] != DBNull.Value)
-                                {
-                                    codOri = Convert.ToInt32(leitor["Cod_Ori"]);
-                                }
-
-                                string nomeOri = "N/A";
-                                if (leitor["Nome_Orientador"] != DBNull.Value)
-                                {
-                                    nomeOri = leitor["Nome_Orientador"].ToString();
-                                }
-
-                                Aluno a = new Aluno(
-                                    Convert.ToInt32(leitor["Cod_Aluno"]),
-                                    leitor["Nome_Aluno"].ToString(),
-                                    Convert.ToInt32(leitor["Cod_Turma"]),
-                                    Convert.ToInt32(leitor["Cod_Curso"]),
-                                    leitor["Estado_Estagio"].ToString(),
-                                    codOri,
-                                    Convert.ToInt32(leitor["Cod_Letivo"]),
-                                    leitor["Nome_Curso"].ToString(),
-                                    nomeOri,
-                                    leitor["Nome_Turma"].ToString(),
-                                    leitor["Intervalo_Letivo"].ToString()
-                                );
-
-                                listaAlunos.Add(a);
-                            }
-                        }
-
-                        dg_alunos.ItemsSource = null;
-                        dg_alunos.ItemsSource = listaAlunos;
-                    }
-                }
+                listaAlunos = Aluno.ObterComFiltros(codTurma: codTurma, codOrientador: codOrientador, codAluno: codAluno, nomeAluno: nomeAluno);
+                dg_alunos.ItemsSource = null;
+                dg_alunos.ItemsSource = listaAlunos;
             }
             catch (Exception ex)
             {

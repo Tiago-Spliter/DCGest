@@ -1,4 +1,3 @@
-using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -8,7 +7,6 @@ namespace DCGest
 {
     public partial class JanelaEditaAluno : Window
     {
-        string caminho = BD.CaminhoBD;
         int idAluno;
 
         List<Turma> listaTurmas = new List<Turma>();
@@ -48,34 +46,20 @@ namespace DCGest
                 cmb_anoletivo.DisplayMemberPath = "Intervalo";
                 cmb_anoletivo.SelectedValuePath = "Cod_Letivo";
 
-                using (MySqlConnection conn = new MySqlConnection(caminho))
+                Aluno a = Aluno.ObterPorId(idAluno);
+                if (a != null)
                 {
-                    conn.Open();
-
-                    string sql_Aluno = "SELECT * FROM aluno WHERE Cod_Aluno = @id";
-                    using (MySqlCommand cmd = new MySqlCommand(sql_Aluno, conn))
+                    txt_nome.Text = a.Nome_Aluno;
+                    cmb_turma.SelectedValue = a.Cod_Turma;
+                    cmb_curso.SelectedValue = a.Cod_Curso;
+                    cmb_anoletivo.SelectedValue = a.Cod_Letivo;
+                    cmb_orientador.SelectedValue = a.Cod_Ori ?? 0;
+                    foreach (System.Windows.Controls.ComboBoxItem item in cmb_estado.Items)
                     {
-                        cmd.Parameters.AddWithValue("@id", idAluno);
-                        using (MySqlDataReader r = cmd.ExecuteReader())
+                        if (item.Content.ToString() == a.Estado_Estagio)
                         {
-                            if (r.Read())
-                            {
-                                txt_nome.Text = r["Nome_Aluno"].ToString();
-                                cmb_turma.SelectedValue = Convert.ToInt32(r["Cod_Turma"]);
-                                cmb_curso.SelectedValue = Convert.ToInt32(r["Cod_Curso"]);
-                                cmb_anoletivo.SelectedValue = Convert.ToInt32(r["Cod_Letivo"]);
-                                cmb_orientador.SelectedValue = r["Cod_Ori"] == DBNull.Value ? 0 : Convert.ToInt32(r["Cod_Ori"]);
-
-                                string estado = r["Estado_Estagio"].ToString();
-                                foreach (System.Windows.Controls.ComboBoxItem item in cmb_estado.Items)
-                                {
-                                    if (item.Content.ToString() == estado)
-                                    {
-                                        cmb_estado.SelectedItem = item;
-                                        break;
-                                    }
-                                }
-                            }
+                            cmb_estado.SelectedItem = item;
+                            break;
                         }
                     }
                 }
@@ -96,35 +80,19 @@ namespace DCGest
                     return;
                 }
 
-                using (MySqlConnection conn = new MySqlConnection(caminho))
+                int codOri = Convert.ToInt32(cmb_orientador.SelectedValue);
+                var aluno = new Aluno
                 {
-                    conn.Open();
-                    string sql = @"UPDATE aluno SET 
-                                   Nome_Aluno = @nome, 
-                                   Cod_Turma = @turma, 
-                                   Cod_Curso = @curso, 
-                                   Estado_Estagio = @estado, 
-                                   Cod_Ori = @ori, 
-                                   Cod_Letivo = @letivo 
-                                   WHERE Cod_Aluno = @id";
+                    Cod_Aluno      = idAluno,
+                    Nome_Aluno     = txt_nome.Text.Trim(),
+                    Cod_Turma      = Convert.ToInt32(cmb_turma.SelectedValue),
+                    Cod_Curso      = Convert.ToInt32(cmb_curso.SelectedValue),
+                    Estado_Estagio = ((System.Windows.Controls.ComboBoxItem)cmb_estado.SelectedItem).Content.ToString(),
+                    Cod_Ori        = codOri == 0 ? (int?)null : codOri,
+                    Cod_Letivo     = Convert.ToInt32(cmb_anoletivo.SelectedValue)
+                };
 
-                    using (MySqlCommand cmd = new MySqlCommand(sql, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@nome", txt_nome.Text.Trim());
-                        cmd.Parameters.AddWithValue("@turma", cmb_turma.SelectedValue);
-                        cmd.Parameters.AddWithValue("@curso", cmb_curso.SelectedValue);
-                        cmd.Parameters.AddWithValue("@estado", ((System.Windows.Controls.ComboBoxItem)cmb_estado.SelectedItem).Content.ToString());
-
-                        int codOri = Convert.ToInt32(cmb_orientador.SelectedValue);
-                        cmd.Parameters.AddWithValue("@ori", codOri == 0 ? (object)DBNull.Value : codOri);
-
-                        cmd.Parameters.AddWithValue("@letivo", cmb_anoletivo.SelectedValue);
-                        cmd.Parameters.AddWithValue("@id", idAluno);
-
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-
+                aluno.AtualizarNaBD();
                 MessageBox.Show("Dados do aluno atualizados com sucesso!");
                 this.DialogResult = true;
                 this.Close();

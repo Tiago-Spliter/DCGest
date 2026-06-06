@@ -1,11 +1,9 @@
-using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using DCGest.Classes;
-using BCrypt.Net;
 
 namespace DCGest
 {
@@ -198,42 +196,16 @@ namespace DCGest
 
         private void InserirDiretorCurso()
         {
-            using (MySqlConnection conn = new MySqlConnection(caminho))
+            try
             {
-                conn.Open();
-                using (MySqlTransaction trans = conn.BeginTransaction())
-                {
-                    try
-                    {
-                        string passHash = BCrypt.Net.BCrypt.HashPassword(txtPassDC.Password);
-                        string sqlAut = "INSERT INTO autenticacao (Utilizador, PalavraPasse) VALUES (@user, @pass); SELECT LAST_INSERT_ID();";
-                        int codAut;
-                        using (MySqlCommand cmdAut = new MySqlCommand(sqlAut, conn, trans))
-                        {
-                            cmdAut.Parameters.AddWithValue("@user", txtUserDC.Text.Trim());
-                            cmdAut.Parameters.AddWithValue("@pass", passHash);
-                            codAut = Convert.ToInt32(cmdAut.ExecuteScalar());
-                        }
-
-                        string sqlDC = "INSERT INTO diretor_curso (Nome_DC, Cod_Curso, Cod_Aut) VALUES (@nome, @curso, @aut)";
-                        using (MySqlCommand cmdDC = new MySqlCommand(sqlDC, conn, trans))
-                        {
-                            cmdDC.Parameters.AddWithValue("@nome", txtNomeDC.Text.Trim());
-                            cmdDC.Parameters.AddWithValue("@curso", cmb_CursoDC.SelectedValue);
-                            cmdDC.Parameters.AddWithValue("@aut", codAut);
-                            cmdDC.ExecuteNonQuery();
-                        }
-
-                        trans.Commit();
-                        MessageBox.Show("Diretor de Curso e Credenciais criados com sucesso!");
-                        LimparCampos();
-                    }
-                    catch (Exception ex)
-                    {
-                        trans.Rollback();
-                        MessageBox.Show("Erro ao criar Diretor: " + ex.Message);
-                    }
-                }
+                var dc = new DiretorCurso(0, txtNomeDC.Text.Trim(), Convert.ToInt32(cmb_CursoDC.SelectedValue), 0);
+                dc.InserirNaBD(txtUserDC.Text.Trim(), txtPassDC.Password, caminho);
+                MessageBox.Show("Diretor de Curso e Credenciais criados com sucesso!");
+                LimparCampos();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao criar Diretor: " + ex.Message);
             }
         }
 

@@ -118,6 +118,135 @@ namespace DCGest.Classes
             }
         }
 
+        public static List<Aluno> ObterComFiltros(
+            int? codLetivo = null, int? codCurso = null, int? codTurma = null,
+            int? codOrientador = null, int? codAluno = null, string nomeAluno = null)
+        {
+            var lista = new List<Aluno>();
+            using (var conn = new MySqlConnection(BD.CaminhoBD))
+            {
+                conn.Open();
+                string sql = "SELECT a.*, c.Nome_Curso, o.Nome_Orientador, t.Nome as Nome_Turma, al.Intervalo as Intervalo_Letivo " +
+                             "FROM aluno a " +
+                             "LEFT JOIN cursos c ON a.Cod_Curso = c.Cod_Curso " +
+                             "LEFT JOIN orientador o ON a.Cod_Ori = o.Cod_Orientador " +
+                             "LEFT JOIN turmas t ON a.Cod_Turma = t.Cod_Turma " +
+                             "LEFT JOIN anosletivos al ON a.Cod_Letivo = al.Cod_Letivo " +
+                             "WHERE 1=1";
+
+                if (codAluno.HasValue)      sql += " AND a.Cod_Aluno = @cod";
+                if (!string.IsNullOrEmpty(nomeAluno)) sql += " AND a.Nome_Aluno LIKE @nome";
+                if (codLetivo.HasValue)     sql += " AND a.Cod_Letivo = @letivo";
+                if (codCurso.HasValue)      sql += " AND a.Cod_Curso = @curso";
+                if (codTurma.HasValue)      sql += " AND a.Cod_Turma = @turma";
+                if (codOrientador.HasValue) sql += " AND a.Cod_Ori = @orientador";
+
+                using (var cmd = new MySqlCommand(sql, conn))
+                {
+                    if (codAluno.HasValue)      cmd.Parameters.AddWithValue("@cod", codAluno.Value);
+                    if (!string.IsNullOrEmpty(nomeAluno)) cmd.Parameters.AddWithValue("@nome", "%" + nomeAluno + "%");
+                    if (codLetivo.HasValue)     cmd.Parameters.AddWithValue("@letivo", codLetivo.Value);
+                    if (codCurso.HasValue)      cmd.Parameters.AddWithValue("@curso", codCurso.Value);
+                    if (codTurma.HasValue)      cmd.Parameters.AddWithValue("@turma", codTurma.Value);
+                    if (codOrientador.HasValue) cmd.Parameters.AddWithValue("@orientador", codOrientador.Value);
+
+                    using (var r = cmd.ExecuteReader())
+                    {
+                        while (r.Read())
+                        {
+                            int? ori = r["Cod_Ori"] == DBNull.Value ? (int?)null : Convert.ToInt32(r["Cod_Ori"]);
+                            string nomeOri = r["Nome_Orientador"] == DBNull.Value ? "N/A" : r["Nome_Orientador"].ToString();
+
+                            lista.Add(new Aluno(
+                                Convert.ToInt32(r["Cod_Aluno"]),
+                                r["Nome_Aluno"].ToString(),
+                                Convert.ToInt32(r["Cod_Turma"]),
+                                Convert.ToInt32(r["Cod_Curso"]),
+                                r["Estado_Estagio"].ToString(),
+                                ori,
+                                Convert.ToInt32(r["Cod_Letivo"]),
+                                r["Nome_Curso"].ToString(),
+                                nomeOri,
+                                r["Nome_Turma"].ToString(),
+                                r["Intervalo_Letivo"].ToString()
+                            ));
+                        }
+                    }
+                }
+            }
+            return lista;
+        }
+
+        public void AtualizarNaBD()
+        {
+            using (var conn = new MySqlConnection(BD.CaminhoBD))
+            {
+                conn.Open();
+                string sql = @"UPDATE aluno SET
+                               Nome_Aluno = @nome,
+                               Cod_Turma = @turma,
+                               Cod_Curso = @curso,
+                               Estado_Estagio = @estado,
+                               Cod_Ori = @ori,
+                               Cod_Letivo = @letivo
+                               WHERE Cod_Aluno = @id";
+                using (var cmd = new MySqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@nome", Nome_Aluno);
+                    cmd.Parameters.AddWithValue("@turma", Cod_Turma);
+                    cmd.Parameters.AddWithValue("@curso", Cod_Curso);
+                    cmd.Parameters.AddWithValue("@estado", Estado_Estagio);
+                    cmd.Parameters.AddWithValue("@ori", (object)Cod_Ori ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@letivo", Cod_Letivo);
+                    cmd.Parameters.AddWithValue("@id", Cod_Aluno);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public static bool AtualizarEstadoEstagio(int codAluno)
+        {
+            using (var conn = new MySqlConnection(BD.CaminhoBD))
+            {
+                conn.Open();
+
+                string sqlTotal = @"SELECT COUNT(*) FROM NotaMod n
+                                    INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo
+                                    INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc
+                                    WHERE n.Cod_Aluno = @Aluno AND d.Tipo LIKE '%Técnica%'";
+                int totalTecnicos;
+                using (var cmd = new MySqlCommand(sqlTotal, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Aluno", codAluno);
+                    totalTecnicos = Convert.ToInt32(cmd.ExecuteScalar());
+                }
+
+                string sqlPositivos = @"SELECT COUNT(*) FROM NotaMod n
+                                        INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo
+                                        INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc
+                                        WHERE n.Cod_Aluno = @Aluno AND d.Tipo LIKE '%Técnica%'
+                                        AND n.Valor REGEXP '^[0-9]+$' AND n.Valor + 0 >= 10";
+                int concluidosTecnicos;
+                using (var cmd = new MySqlCommand(sqlPositivos, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Aluno", codAluno);
+                    concluidosTecnicos = Convert.ToInt32(cmd.ExecuteScalar());
+                }
+
+                if (totalTecnicos > 0 && (double)concluidosTecnicos / totalTecnicos > 0.90)
+                {
+                    string sqlUpdate = "UPDATE aluno SET Estado_Estagio = 'Pronto' WHERE Cod_Aluno = @Aluno";
+                    using (var cmd = new MySqlCommand(sqlUpdate, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Aluno", codAluno);
+                        cmd.ExecuteNonQuery();
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static Aluno ObterPorId(int id)
         {
             using (MySqlConnection conn = new MySqlConnection(BD.CaminhoBD))

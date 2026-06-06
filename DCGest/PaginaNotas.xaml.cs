@@ -11,9 +11,7 @@ namespace DCGest
     public partial class PaginaNotas : Window
     {
         private const double LimiteProgressaoAno = 0.75;
-        private const string LetraChumbo = "RC";
 
-        string caminho = BD.CaminhoBD;
         int codAluno;
         List<NotaModulo> listaNotas = new List<NotaModulo>();
         List<NotaModulo> todasAsNotasModulos = new List<NotaModulo>();
@@ -46,26 +44,7 @@ namespace DCGest
         {
             ListaAlineas.Clear();
             ListaAlineas.Add(new Alinea { Cod_Alinea = 0, AlineaLetra = string.Empty, Regra = "(sem estado)" });
-
-            using (MySqlConnection conn = new MySqlConnection(caminho))
-            {
-                conn.Open();
-                string sql = "SELECT Cod_alinea, Alinea, Regra, Descricao FROM Alineas ORDER BY Cod_alinea";
-                using (MySqlCommand cmd = new MySqlCommand(sql, conn))
-                using (MySqlDataReader r = cmd.ExecuteReader())
-                {
-                    while (r.Read())
-                    {
-                        ListaAlineas.Add(new Alinea
-                        {
-                            Cod_Alinea  = Convert.ToInt32(r["Cod_alinea"]),
-                            AlineaLetra = r["Alinea"].ToString().Trim(),
-                            Regra       = r["Regra"].ToString(),
-                            Descricao   = r["Descricao"].ToString()
-                        });
-                    }
-                }
-            }
+            ListaAlineas.AddRange(Alinea.ObterTodas());
         }
 
         private void CarregarNomeAluno()
@@ -101,95 +80,11 @@ namespace DCGest
                 notaPAP = null;
                 _valoresOriginais.Clear();
 
-                List<NotaModulo> todasAsNotas = new List<NotaModulo>();
+                List<NotaModulo> todasAsNotas = NotaModulo.ObterPorAluno(codAluno);
 
-                using (MySqlConnection conexao = new MySqlConnection(caminho))
+                foreach (NotaModulo n in todasAsNotas)
                 {
-                    conexao.Open();
-
-                    string sql = @"SELECT n.Cod_NotaMod, d.Ano AS AnoDisciplina, m.Designacao AS Modulo,
-                                          d.Designacao AS Disciplina, d.Tipo, n.Valor, n.Data_Efetua,
-                                          n.Cod_Estado, a.Alinea AS AlineaLetra, a.Regra
-                                   FROM NotaMod n
-                                   INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo
-                                   INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc
-                                   LEFT JOIN Alineas a ON n.Cod_Estado = a.Cod_alinea
-                                   WHERE n.Cod_Aluno = @Aluno
-                                   ORDER BY d.Tipo, d.Designacao, m.Cod_Modulo";
-
-                    using (MySqlCommand comando = new MySqlCommand(sql, conexao))
-                    {
-                        comando.Parameters.AddWithValue("@Aluno", codAluno);
-
-                        using (MySqlDataReader leitor = comando.ExecuteReader())
-                        {
-                            while (leitor.Read())
-                            {
-                                string valorDaNota = null;
-                                if (leitor["Valor"] != DBNull.Value)
-                                {
-                                    valorDaNota = leitor["Valor"].ToString().Trim();
-                                    if (valorDaNota == string.Empty)
-                                    {
-                                        valorDaNota = null;
-                                    }
-                                }
-
-                                DateTime? dataEfetua = null;
-                                if (leitor["Data_Efetua"] != DBNull.Value)
-                                {
-                                    dataEfetua = Convert.ToDateTime(leitor["Data_Efetua"]);
-                                }
-
-                                int? codEstado = null;
-                                string nomeEstado = string.Empty;
-                                if (leitor["Cod_Estado"] != DBNull.Value)
-                                {
-                                    codEstado = Convert.ToInt32(leitor["Cod_Estado"]);
-
-                                    string al = string.Empty;
-                                    if (leitor["AlineaLetra"] != DBNull.Value)
-                                    {
-                                        al = leitor["AlineaLetra"].ToString().Trim();
-                                    }
-
-                                    string regra = string.Empty;
-                                    if (leitor["Regra"] != DBNull.Value)
-                                    {
-                                        regra = leitor["Regra"].ToString();
-                                    }
-
-                                    if (string.IsNullOrEmpty(al))
-                                    {
-                                        nomeEstado = regra;
-                                    }
-                                    else
-                                    {
-                                        nomeEstado = al + " – " + regra;
-                                    }
-                                }
-
-                                string anoNota = leitor["AnoDisciplina"].ToString() + "º Ano";
-
-                                NotaModulo n = new NotaModulo(
-                                    Convert.ToInt32(leitor["Cod_NotaMod"]),
-                                    codAluno,
-                                    0,
-                                    valorDaNota,
-                                    dataEfetua,
-                                    anoNota,
-                                    leitor["Modulo"].ToString(),
-                                    leitor["Disciplina"].ToString(),
-                                    leitor["Tipo"].ToString()
-                                );
-                                n.Cod_Estado = codEstado;
-                                n.NomeEstado = nomeEstado;
-
-                                todasAsNotas.Add(n);
-                                _valoresOriginais[n.Cod_NotaMod] = n.Valor;
-                            }
-                        }
-                    }
+                    _valoresOriginais[n.Cod_NotaMod] = n.Valor;
                 }
 
                 foreach (NotaModulo n in todasAsNotas)
@@ -226,50 +121,6 @@ namespace DCGest
             {
                 MessageBox.Show("Erro ao carregar as notas: " + ex.Message);
             }
-        }
-
-        private string ValidarENormalizarModulo(string input, out string erro)
-        {
-            erro = null;
-
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                return null;
-            }
-
-            string trimmed = input.Trim().ToUpper();
-
-            if (trimmed == LetraChumbo)
-            {
-                return LetraChumbo;
-            }
-
-            string normalizado = trimmed.Replace(",", ".");
-
-            if (!double.TryParse(normalizado, out double valor))
-            {
-                erro = "'" + input + "' não é uma nota válida. Introduza um valor entre 0 e 20 ou '" + LetraChumbo + "'.";
-                return null;
-            }
-
-            if (valor < 0)
-            {
-                erro = "A nota não pode ser negativa.";
-                return null;
-            }
-
-            if (valor > 20)
-            {
-                erro = "A nota não pode ser superior a 20.";
-                return null;
-            }
-
-            if (valor < 9.5)
-            {
-                return LetraChumbo;
-            }
-
-            return ((int)Math.Round(valor)).ToString();
         }
 
         private bool ValidarNotaComponente(string input, string nomeComponente, out double resultado)
@@ -309,7 +160,7 @@ namespace DCGest
         {
             try
             {
-                using (MySqlConnection conn = new MySqlConnection(caminho))
+                using (MySqlConnection conn = new MySqlConnection(BD.CaminhoBD))
                 {
                     conn.Open();
 
@@ -595,7 +446,7 @@ namespace DCGest
                         continue;
                     }
 
-                    string normalizado = ValidarENormalizarModulo(n.Valor, out string erroNota);
+                    string normalizado = NotaModulo.ValidarENormalizar(n.Valor, out string erroNota);
                     if (!string.IsNullOrEmpty(erroNota))
                     {
                         MessageBox.Show("Nota inválida em '" + n.NomeModulo + "': " + erroNota, "Erro de Validação", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -643,7 +494,7 @@ namespace DCGest
                     notasParaSalvar.Add(notaPAP);
                 }
 
-                using (MySqlConnection conexao = new MySqlConnection(caminho))
+                using (MySqlConnection conexao = new MySqlConnection(BD.CaminhoBD))
                 {
                     conexao.Open();
 
@@ -725,49 +576,9 @@ namespace DCGest
 
         private void AtualizarEstadoEstagio()
         {
-            using (MySqlConnection conexao = new MySqlConnection(caminho))
+            if (Aluno.AtualizarEstadoEstagio(codAluno))
             {
-                conexao.Open();
-
-                string sqlTotal = @"SELECT COUNT(*) FROM NotaMod n
-                                    INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo
-                                    INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc
-                                    WHERE n.Cod_Aluno = @Aluno AND d.Tipo LIKE '%Técnica%'";
-
-                int totalTecnicos = 0;
-                using (MySqlCommand cmd = new MySqlCommand(sqlTotal, conexao))
-                {
-                    cmd.Parameters.AddWithValue("@Aluno", codAluno);
-                    totalTecnicos = Convert.ToInt32(cmd.ExecuteScalar());
-                }
-
-                string sqlPositivos = @"SELECT COUNT(*) FROM NotaMod n
-                                        INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo
-                                        INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc
-                                        WHERE n.Cod_Aluno = @Aluno AND d.Tipo LIKE '%Técnica%'
-                                        AND n.Valor REGEXP '^[0-9]+$' AND n.Valor + 0 >= 10";
-
-                int concluidosTecnicos = 0;
-                using (MySqlCommand cmd = new MySqlCommand(sqlPositivos, conexao))
-                {
-                    cmd.Parameters.AddWithValue("@Aluno", codAluno);
-                    concluidosTecnicos = Convert.ToInt32(cmd.ExecuteScalar());
-                }
-
-                if (totalTecnicos > 0)
-                {
-                    double percentagem = (double)concluidosTecnicos / totalTecnicos;
-                    if (percentagem > 0.90)
-                    {
-                        string sqlUpdate = "UPDATE aluno SET Estado_Estagio = 'Pronto' WHERE Cod_Aluno = @Aluno";
-                        using (MySqlCommand cmd = new MySqlCommand(sqlUpdate, conexao))
-                        {
-                            cmd.Parameters.AddWithValue("@Aluno", codAluno);
-                            cmd.ExecuteNonQuery();
-                        }
-                        MessageBox.Show("O aluno atingiu mais de 90% dos módulos técnicos positivos! Estado de Estágio atualizado para 'Pronto'.", "Parabéns", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                }
+                MessageBox.Show("O aluno atingiu mais de 90% dos módulos técnicos positivos! Estado de Estágio atualizado para 'Pronto'.", "Parabéns", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 

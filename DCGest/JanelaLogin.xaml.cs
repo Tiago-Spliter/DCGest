@@ -1,15 +1,11 @@
-using MySql.Data.MySqlClient;
 using System;
 using System.Windows;
-using BCrypt.Net;
 using DCGest.Classes;
 
 namespace DCGest
 {
     public partial class JanelaLogin : Window
     {
-        string caminho = BD.CaminhoBD;
-
         public JanelaLogin()
         {
             InitializeComponent();
@@ -28,63 +24,17 @@ namespace DCGest
                     return;
                 }
 
-                using (MySqlConnection conn = new MySqlConnection(caminho))
+                DiretorCurso dc = Autenticacao.Verificar(loginInput, pass, out string erro);
+                if (dc != null)
                 {
-                    conn.Open();
-
-                    string sql = "SELECT * FROM autenticacao WHERE Utilizador = @user";
-                    using (MySqlCommand cmd = new MySqlCommand(sql, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@user", loginInput);
-
-                        using (MySqlDataReader rAut = cmd.ExecuteReader())
-                        {
-                            if (rAut.Read())
-                            {
-                                string hashNaBD = rAut["PalavraPasse"].ToString();
-                                int codAut = Convert.ToInt32(rAut["Cod_Aut"]);
-
-                                if (BCrypt.Net.BCrypt.Verify(pass, hashNaBD))
-                                {
-                                    rAut.Close();
-
-                                    string sqlDC = "SELECT * FROM diretor_curso WHERE Cod_Aut = @codAut";
-                                    using (MySqlCommand cmdDC = new MySqlCommand(sqlDC, conn))
-                                    {
-                                        cmdDC.Parameters.AddWithValue("@codAut", codAut);
-                                        using (MySqlDataReader rDC = cmdDC.ExecuteReader())
-                                        {
-                                            if (rDC.Read())
-                                            {
-                                                Sessao.UtilizadorLogado = new DiretorCurso(
-                                                    Convert.ToInt32(rDC["Cod_DC"]),
-                                                    rDC["Nome_DC"].ToString(),
-                                                    Convert.ToInt32(rDC["Cod_Curso"]),
-                                                    codAut
-                                                );
-                                                Sessao.Login = loginInput;
-
-                                                this.DialogResult = true;
-                                                this.Close();
-                                            }
-                                            else
-                                            {
-                                                MessageBox.Show("Atenção: Utilizador autenticado mas sem perfil de Diretor associado!");
-                                            }
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    MessageBox.Show("Credenciais inválidas!");
-                                }
-                            }
-                            else
-                            {
-                                MessageBox.Show("Credenciais inválidas!");
-                            }
-                        }
-                    }
+                    Sessao.UtilizadorLogado = dc;
+                    Sessao.Login = loginInput;
+                    this.DialogResult = true;
+                    this.Close();
+                }
+                else
+                {
+                    MessageBox.Show(erro);
                 }
             }
             catch (Exception ex)
