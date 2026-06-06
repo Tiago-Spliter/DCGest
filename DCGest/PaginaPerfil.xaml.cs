@@ -26,7 +26,6 @@ namespace DCGest
                     txt_nome.Text = Sessao.UtilizadorLogado.Nome_DC;
                     txt_login.Text = Sessao.Login;
 
-                    // Buscar o nome do curso
                     using (MySqlConnection conn = new MySqlConnection(caminho))
                     {
                         conn.Open();
@@ -82,7 +81,6 @@ namespace DCGest
                 {
                     conn.Open();
 
-                    // CRIPTOGRAFAR COM BCRYPT
                     string hash = BCrypt.Net.BCrypt.HashPassword(nova);
 
                     string sql = "UPDATE autenticacao SET PalavraPasse = @hash WHERE Cod_Aut = @id";

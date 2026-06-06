@@ -80,7 +80,7 @@
   <Class Name="DCGest.Classes.NotaModulo">
     <Position X="13.5" Y="3.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>IkAAICAAEAAAAAAAAAAAAAAEAAIAAAAAAAAAAACAAAA=</HashCode>
+      <HashCode>IkAAICBAEAAAAAAAAAAAACAEAAIAAAAAAAAAAQCAAAA=</HashCode>
       <FileName>Classes\NotaModulo.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -110,6 +110,13 @@
     <TypeIdentifier>
       <HashCode>AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAEAAAA=</HashCode>
       <FileName>Classes\Turma.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DCGest.Classes.Alinea">
+    <Position X="11.75" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQBABAAAAAAAAAQAAAAAAAAAAAABAAAAAAAA=</HashCode>
+      <FileName>Classes\Alinea.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Font Name="Segoe UI" Size="9" />

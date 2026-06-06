@@ -12,9 +12,6 @@ using DCGest.Classes;
 
 namespace DCGest
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -24,7 +21,6 @@ namespace DCGest
             {
                 InitializeComponent();
 
-                // Mostrar nome do utilizador logado no cabeçalho (pt-PT)
                 if (Sessao.UtilizadorLogado != null)
                 {
                     lbl_UserNome.Text = Sessao.UtilizadorLogado.Nome_DC;
@@ -56,6 +52,11 @@ namespace DCGest
             frm.Content = paginaAdiciona;
         }
 
+        private void Btn_Click_PaginaAlineas(object sender, RoutedEventArgs e)
+        {
+            frm.Content = new PaginaAlineas();
+        }
+
         private void Btn_Click_Perfil(object sender, RoutedEventArgs e)
         {
             PaginaPerfil paginaPerfil = new PaginaPerfil();
@@ -68,19 +69,15 @@ namespace DCGest
 
             if (resultado == MessageBoxResult.Yes)
             {
-                // Limpar dados da sessão
                 Sessao.UtilizadorLogado = null;
                 Sessao.Login = string.Empty;
 
-                // Esconder a janela principal
                 this.Hide();
 
-                // Abrir novamente a janela de login
                 JanelaLogin janelaLogin = new JanelaLogin();
 
                 if (janelaLogin.ShowDialog() == true)
                 {
-                    // Se o login for bem-sucedido, atualizamos a interface e mostramos a janela
                     if (Sessao.UtilizadorLogado != null)
                     {
                         lbl_UserNome.Text = Sessao.UtilizadorLogado.Nome_DC;
@@ -91,7 +88,6 @@ namespace DCGest
                 }
                 else
                 {
-                    // Se cancelar o login, fecha a aplicação
                     Application.Current.Shutdown();
                 }
             }

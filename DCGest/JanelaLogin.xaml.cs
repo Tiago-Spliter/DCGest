@@ -32,7 +32,6 @@ namespace DCGest
                 {
                     conn.Open();
 
-                    // 1. Procurar na tabela Autenticacao
                     string sql = "SELECT * FROM autenticacao WHERE Utilizador = @user";
                     using (MySqlCommand cmd = new MySqlCommand(sql, conn))
                     {
@@ -45,12 +44,10 @@ namespace DCGest
                                 string hashNaBD = rAut["PalavraPasse"].ToString();
                                 int codAut = Convert.ToInt32(rAut["Cod_Aut"]);
 
-                                // VERIFICAÇÃO BCRYPT
                                 if (BCrypt.Net.BCrypt.Verify(pass, hashNaBD))
                                 {
-                                    rAut.Close(); // Fechar para poder fazer nova consulta
+                                    rAut.Close();
 
-                                    // 2. Buscar dados do Diretor de Curso associado
                                     string sqlDC = "SELECT * FROM diretor_curso WHERE Cod_Aut = @codAut";
                                     using (MySqlCommand cmdDC = new MySqlCommand(sqlDC, conn))
                                     {
@@ -59,7 +56,6 @@ namespace DCGest
                                         {
                                             if (rDC.Read())
                                             {
-                                                // GUARDAR NA SESSÃO (pt-PT: UtilizadorLogado)
                                                 Sessao.UtilizadorLogado = new DiretorCurso(
                                                     Convert.ToInt32(rDC["Cod_DC"]),
                                                     rDC["Nome_DC"].ToString(),

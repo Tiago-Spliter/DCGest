@@ -21,7 +21,6 @@
                         <ComboBoxItem Content="Diretor de Curso"/>
                     </ComboBox>
 
-                    <!-- Painel Aluno -->
                     <StackPanel Name="painelAluno" Visibility="Visible">
                         <TextBlock Text="Código do Aluno" Foreground="#5A6478" Margin="0,0,0,5"/>
                         <TextBox Name="txtCodAluno" Height="32" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
@@ -51,13 +50,11 @@
                         <ComboBox Name="cmb_Ano" Height="32" Margin="0,0,0,30" VerticalContentAlignment="Center" DisplayMemberPath="Intervalo" SelectedValuePath="Cod_Letivo"/>
                     </StackPanel>
 
-                    <!-- Painel Orientador -->
                     <StackPanel Name="painelOrientador" Visibility="Collapsed">
                         <TextBlock Text="Nome do Orientador" Foreground="#5A6478" Margin="0,0,0,5"/>
                         <TextBox Name="txtNomeOri" Height="35" Margin="0,0,0,40" VerticalContentAlignment="Center"/>
                     </StackPanel>
 
-                    <!-- Painel Diretor de Curso -->
                     <StackPanel Name="painelDC" Visibility="Collapsed">
                         <TextBlock Text="Nome do Diretor" Foreground="#5A6478" Margin="0,0,0,5"/>
                         <TextBox Name="txtNomeDC" Height="32" Margin="0,0,0,15" VerticalContentAlignment="Center"/>

@@ -12,23 +12,17 @@ namespace DCGest.Classes
     {
         private string connectionString = BD.CaminhoBD;
 
-        // PALETE DE CORES SINCRONIZADA
+        BaseColor corLaranjaMedio = new BaseColor(250, 191, 143);
+        BaseColor corVerdeMedio = new BaseColor(170, 210, 140);
+        BaseColor corVermelhoMedio = new BaseColor(240, 160, 160);
 
-        // TONS DE REFERÊNCIA (Para as células M1-M19)
-        BaseColor corLaranjaMedio = new BaseColor(250, 191, 143);  // 1º Ano
-        BaseColor corVerdeMedio = new BaseColor(170, 210, 140);    // 2º Ano
-        BaseColor corVermelhoMedio = new BaseColor(240, 160, 160); // 3º Ano
-
-        // TONS DE CABEÇALHO (Rodapé)
         BaseColor corLaranjaEscuro = new BaseColor(228, 108, 10);
         BaseColor corVerdeEscuro = new BaseColor(118, 147, 60);
         BaseColor corVermelhoEscuro = new BaseColor(180, 40, 40);
 
-        // TONS DE COMPONENTE (Coluna 1)
         BaseColor corRosaCarregado = new BaseColor(245, 140, 170);
         BaseColor corVerdeClaroComponente = new BaseColor(210, 235, 190);
 
-        // CORES ESPECIAIS
         BaseColor corFCT = new BaseColor(183, 222, 232);
         BaseColor corHeaderGrelha = new BaseColor(211, 211, 211);
         BaseColor corFinalCurso = new BaseColor(255, 255, 0);
@@ -57,7 +51,6 @@ namespace DCGest.Classes
             Font fBold = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 7, BaseColor.BLACK);
             Font fTitle = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.BLACK);
 
-            // 1. CABEÇALHO ESTILO TESTE
             PdfPTable tabHeader = new PdfPTable(3);
             tabHeader.WidthPercentage = 100;
             tabHeader.SetWidths(new float[] { 3, 1, 1 });
@@ -83,7 +76,6 @@ namespace DCGest.Classes
             doc.Add(tabHeader);
             doc.Add(new Paragraph(" "));
 
-            // 2. GRELHA DE MÓDULOS
             PdfPTable gridM = new PdfPTable(20);
             gridM.WidthPercentage = 100;
             float[] wGrid = new float[20];
@@ -121,8 +113,7 @@ namespace DCGest.Classes
                 string tipo = discAgrupadas[nomeDisc][0].TipoDisciplina;
                 if (tipo.ToLower().Contains("final"))
                 {
-                    double vF = 0;
-                    if (discAgrupadas[nomeDisc][0].Valor != null) vF = (double)discAgrupadas[nomeDisc][0].Valor;
+                    double vF = discAgrupadas[nomeDisc][0].ValorNumerico ?? 0;
                     if (nomeDisc.ToUpper().Contains("FCT")) notaFCT = vF;
                     else if (nomeDisc.ToUpper().Contains("PAP")) notaPAP = vF;
                     continue;
@@ -146,14 +137,13 @@ namespace DCGest.Classes
                     string v = ""; BaseColor bgCell = BaseColor.WHITE;
                     if (colunas[i] != null)
                     {
-                        v = colunas[i].Valor != null ? colunas[i].Valor.ToString() : "0";
+                        v = colunas[i].Valor ?? "0";
                         bgCell = GetCorAnoIntensa(colunas[i].Ano);
                     }
                     gridM.AddCell(new PdfPCell(new Phrase(v, fBase)) { BackgroundColor = bgCell, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
                 }
             }
 
-            // FCT e PAP (Linhas Manuais no Grid)
             gridM.AddCell(new PdfPCell(new Phrase("FCT", fBase)) { BackgroundColor = corFCT, Padding = 2 });
             gridM.AddCell(new PdfPCell(new Phrase(notaFCT.ToString(), fBase)) { BackgroundColor = corFCT, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 2 });
             gridM.AddCell(new PdfPCell(new Phrase("", fBase)) { Border = 0, Colspan = 18 });
@@ -164,7 +154,6 @@ namespace DCGest.Classes
 
             doc.Add(gridM);
 
-            // 3. MÉDIAS
             doc.Add(new Paragraph(" "));
             PdfPTable tabMediasMod = new PdfPTable(2);
             tabMediasMod.WidthPercentage = 30;
@@ -173,9 +162,10 @@ namespace DCGest.Classes
             double somaGeral = 0; int contaGeral = 0;
             foreach (NotaModulo nm in todasNotas)
             {
-                if (nm.TipoDisciplina.ToLower().Contains("final") == false && nm.Valor != null && nm.Valor > 0)
+                double? vNum = nm.ValorNumerico;
+                if (nm.TipoDisciplina.ToLower().Contains("final") == false && vNum != null && vNum > 0)
                 {
-                    somaGeral += (double)nm.Valor;
+                    somaGeral += vNum.Value;
                     contaGeral++;
                 }
             }
@@ -194,14 +184,12 @@ namespace DCGest.Classes
             tabMF.WidthPercentage = 20;
             tabMF.HorizontalAlignment = Element.ALIGN_LEFT;
 
-            // FÓRMULA OFICIAL: Módulos 66%, FCT 11%, PAP 23%
             double mFinal = (mediaModulos * 0.66) + (notaFCT * 0.11) + (notaPAP * 0.23);
 
             tabMF.AddCell(new PdfPCell(new Phrase("Média final de curso", fBold)) { BackgroundColor = corFinalCurso, Padding = 4 });
             tabMF.AddCell(new PdfPCell(new Phrase(mFinal.ToString("N1"), fBold)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 4 });
             doc.Add(tabMF);
 
-            // 4. BLOCOS DE RODAPÉ
             doc.Add(new Paragraph(" "));
             PdfPTable tabAnos = new PdfPTable(3);
             tabAnos.WidthPercentage = 100;
@@ -230,7 +218,8 @@ namespace DCGest.Classes
                     notasAno.Add(n);
                     totalModulos++;
                     if (n.TipoDisciplina.ToLower().Contains("técnica")) tecnicasModulos++;
-                    if (n.Valor != null && n.Valor > 0) { somaAno += (double)n.Valor; contaAno++; }
+                    double? vNum = n.ValorNumerico;
+                    if (vNum != null && vNum > 0) { somaAno += vNum.Value; contaAno++; }
                 }
             }
 
@@ -273,11 +262,12 @@ namespace DCGest.Classes
                 double soma = 0; int realizado = 0; bool sc = false;
                 foreach (NotaModulo v in notasDisc)
                 {
-                    if (v.Valor != null && v.Valor > 0) { soma += (double)v.Valor; realizado++; }
-                    if (v.Valor == null || v.Valor < 10) sc = true;
+                    double? vNum = v.ValorNumerico;
+                    if (vNum != null && vNum > 0) { soma += vNum.Value; realizado++; }
+                    if (string.IsNullOrEmpty(v.Valor) || vNum == null || vNum < 10) sc = true;
                 }
                 double m = realizado > 0 ? soma / (double)realizado : 0;
-                string s = sc ? "SC" : "C";
+                string sit = sc ? "SC" : "C";
 
                 BaseColor bg = BaseColor.WHITE;
                 string tp = notasDisc[0].TipoDisciplina.ToLower();
@@ -286,7 +276,7 @@ namespace DCGest.Classes
 
                 data.AddCell(new PdfPCell(new Phrase(m.ToString("N1"), fBase)) { BackgroundColor = bg, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
                 data.AddCell(new PdfPCell(new Phrase(realizado.ToString(), fBase)) { BackgroundColor = bg, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
-                data.AddCell(new PdfPCell(new Phrase(s, fBase)) { BackgroundColor = bg, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
+                data.AddCell(new PdfPCell(new Phrase(sit, fBase)) { BackgroundColor = bg, Padding = 2, HorizontalAlignment = Element.ALIGN_CENTER });
                 data.AddCell(new PdfPCell(new Phrase("", fBase)) { BackgroundColor = bg, Padding = 2 });
             }
             cell.AddElement(data);
@@ -335,7 +325,11 @@ namespace DCGest.Classes
             double s = 0; int c = 0;
             foreach (NotaModulo n in notas)
             {
-                if (n.TipoDisciplina.ToLower().Contains(tipo.ToLower()) && n.Valor != null && n.Valor > 0) { s += (double)n.Valor; c++; }
+                double? vNum = n.ValorNumerico;
+                if (n.TipoDisciplina.ToLower().Contains(tipo.ToLower()) && vNum != null && vNum > 0)
+                {
+                    s += vNum.Value; c++;
+                }
             }
             return c > 0 ? (s / (double)c).ToString("N1") : "0,0";
         }
@@ -346,7 +340,10 @@ namespace DCGest.Classes
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 conn.Open();
-                string sql = "SELECT n.Cod_NotaMod, d.Ano as AnoDisciplina, d.Designacao as Disciplina, d.Tipo, m.Designacao as Modulo, m.Cod_Modulo, n.Valor FROM NotaMod n INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc WHERE n.Cod_Aluno = @Aluno ORDER BY d.Tipo, d.Designacao, m.Cod_Modulo";
+                string sql = "SELECT n.Cod_NotaMod, d.Ano as AnoDisciplina, d.Designacao as Disciplina, d.Tipo, m.Designacao as Modulo, m.Cod_Modulo, n.Valor " +
+                             "FROM NotaMod n INNER JOIN Modulos m ON n.Cod_Modulo = m.Cod_Modulo " +
+                             "INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc " +
+                             "WHERE n.Cod_Aluno = @Aluno ORDER BY d.Tipo, d.Designacao, m.Cod_Modulo";
                 using (MySqlCommand cmd = new MySqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@Aluno", codAluno);
@@ -354,9 +351,17 @@ namespace DCGest.Classes
                     {
                         while (r.Read())
                         {
-                            int? v = r["Valor"] != DBNull.Value ? (int?)Convert.ToInt32(r["Valor"]) : null;
+                            string v = r["Valor"] != DBNull.Value ? r["Valor"].ToString().Trim() : null;
+                            if (v == string.Empty) v = null;
                             string a = r["AnoDisciplina"].ToString() + "º Ano";
-                            l.Add(new NotaModulo(Convert.ToInt32(r["Cod_NotaMod"]), codAluno, Convert.ToInt32(r["Cod_Modulo"]), v, null, a, r["Modulo"].ToString(), r["Disciplina"].ToString(), r["Tipo"].ToString()));
+                            l.Add(new NotaModulo(
+                                Convert.ToInt32(r["Cod_NotaMod"]),
+                                codAluno,
+                                Convert.ToInt32(r["Cod_Modulo"]),
+                                v, null, a,
+                                r["Modulo"].ToString(),
+                                r["Disciplina"].ToString(),
+                                r["Tipo"].ToString()));
                         }
                     }
                 }

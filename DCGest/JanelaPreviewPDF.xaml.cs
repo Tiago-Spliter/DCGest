@@ -9,7 +9,6 @@ namespace DCGest
         {
             InitializeComponent();
 
-            // O WebBrowser do WPF precisa de um URI absoluto
             pdfViewer.Navigate(new Uri(caminhoPdf));
         }
     }

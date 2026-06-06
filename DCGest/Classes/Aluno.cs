@@ -26,7 +26,6 @@ namespace DCGest.Classes
 
         }
 
-        // Construtor Base (BD)
         public Aluno(int codAluno, string nomeAluno, int codTurma, int codCurso, string estadoEstagio, int? codOri, int codLetivo)
         {
             Cod_Aluno = codAluno;
@@ -38,7 +37,6 @@ namespace DCGest.Classes
             Cod_Letivo = codLetivo;
         }
 
-        // Construtor Completo (Display)
         public Aluno(int codAluno, string nomeAluno, int codTurma, int codCurso, string estadoEstagio, int? codOri, int codLetivo, string nomeCurso, string nomeOrientador, string nomeTurma, string intervaloLetivo)
         {
             Cod_Aluno = codAluno;
@@ -64,8 +62,7 @@ namespace DCGest.Classes
                 {
                     try
                     {
-                        // 1. Inserir o Aluno
-                        string sqlAluno = @"INSERT INTO aluno (Cod_Aluno, Nome_Aluno, Cod_Turma, Cod_Curso, Estado_Estagio, Cod_Ori, Cod_Letivo) 
+                        string sqlAluno = @"INSERT INTO aluno (Cod_Aluno, Nome_Aluno, Cod_Turma, Cod_Curso, Estado_Estagio, Cod_Ori, Cod_Letivo)
                                             VALUES (@Cod, @Nome, @Turma, @Curso, @Estado, @Ori, @Letivo)";
 
                         using (MySqlCommand cmdAluno = new MySqlCommand(sqlAluno, conexao, transacao))
@@ -80,8 +77,7 @@ namespace DCGest.Classes
                             cmdAluno.ExecuteNonQuery();
                         }
 
-                        // 2. Obter Módulos do Curso
-                        string sqlModulos = @"SELECT m.Cod_Modulo, d.Ano 
+                        string sqlModulos = @"SELECT m.Cod_Modulo, d.Ano
                                                FROM Modulos m 
                                                INNER JOIN Disciplina d ON m.Cod_Disc = d.Cod_Disc 
                                                WHERE d.Cod_Curso = @Curso";
@@ -99,7 +95,6 @@ namespace DCGest.Classes
                             }
                         }
 
-                        // 3. Inserir Registos de Notas
                         string sqlNota = "INSERT INTO NotaMod (Cod_Aluno, Cod_Modulo, Ano) VALUES (@Aluno, @Modulo, @Ano)";
                         foreach (var mod in listaModulos)
                         {

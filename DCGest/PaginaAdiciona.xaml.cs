@@ -21,9 +21,6 @@ using System.Text.RegularExpressions;
 
 namespace DCGest
 {
-    /// <summary>
-    /// Interação lógica para PaginaAdiciona.xam
-    /// </summary>
     public partial class PaginaAdiciona : Page
     {
         public PaginaAdiciona()
@@ -37,7 +34,6 @@ namespace DCGest
 
         string caminho = BD.CaminhoBD;
 
-        // Listas 
         List<Turma> listaTurmas = new List<Turma>();
         List<Curso> listaCursos = new List<Curso>();
         List<Orientador> listaOrientadores = new List<Orientador>();
@@ -50,20 +46,19 @@ namespace DCGest
                 return;
             }
 
-            // Reset
             painelAluno.Visibility = Visibility.Collapsed;
             painelOrientador.Visibility = Visibility.Collapsed;
             painelDC.Visibility = Visibility.Collapsed;
 
-            if (cmb_tipo.SelectedIndex == 0) // Aluno
+            if (cmb_tipo.SelectedIndex == 0)
             {
                 painelAluno.Visibility = Visibility.Visible;
             }
-            else if (cmb_tipo.SelectedIndex == 1) // Orientador
+            else if (cmb_tipo.SelectedIndex == 1)
             {
                 painelOrientador.Visibility = Visibility.Visible;
             }
-            else if (cmb_tipo.SelectedIndex == 2) // Diretor de Curso
+            else if (cmb_tipo.SelectedIndex == 2)
             {
                 painelDC.Visibility = Visibility.Visible;
             }
@@ -73,7 +68,6 @@ namespace DCGest
         {
             try
             {
-                // Turma
                 listaTurmas = Turma.ObterTodas();
                 cmb_Turma.ItemsSource = null;
                 cmb_Turma.ItemsSource = listaTurmas;
@@ -82,7 +76,6 @@ namespace DCGest
                     cmb_Turma.SelectedIndex = 0;
                 }
 
-                // Curso
                 listaCursos = Curso.ObterTodos();
                 cmb_Curso.ItemsSource = null;
                 cmb_Curso.ItemsSource = listaCursos;
@@ -98,14 +91,12 @@ namespace DCGest
                     cmb_CursoDC.SelectedIndex = 0;
                 }
 
-                // Orientador
                 listaOrientadores = Orientador.ObterTodos();
                 listaOrientadores.Insert(0, new Orientador(0, "Sem Orientador"));
                 cmb_Orientador.ItemsSource = null;
                 cmb_Orientador.ItemsSource = listaOrientadores;
                 cmb_Orientador.SelectedIndex = 0;
 
-                // Ano-Letivo
                 listaAnos = AnoLetivo.ObterTodos();
                 cmb_Ano.ItemsSource = null;
                 cmb_Ano.ItemsSource = listaAnos;
@@ -124,7 +115,7 @@ namespace DCGest
         {
             try
             {
-                if (cmb_tipo.SelectedIndex == 0) // Aluno
+                if (cmb_tipo.SelectedIndex == 0)
                 {
                     if (string.IsNullOrEmpty(txtCodAluno.Text) || string.IsNullOrEmpty(txtNomeAluno.Text) || cmb_Turma.SelectedItem == null || cmb_Curso.SelectedItem == null || cmb_Ano.SelectedItem == null)
                     {
@@ -171,7 +162,7 @@ namespace DCGest
                         LimparCampos();
                     }
                 }
-                else if (cmb_tipo.SelectedIndex == 1) // Orientador
+                else if (cmb_tipo.SelectedIndex == 1)
                 {
                     if (string.IsNullOrEmpty(txtNomeOri.Text))
                     {
@@ -196,7 +187,7 @@ namespace DCGest
                         LimparCampos();
                     }
                 }
-                else if (cmb_tipo.SelectedIndex == 2) // Diretor de Curso
+                else if (cmb_tipo.SelectedIndex == 2)
                 {
                     if (string.IsNullOrEmpty(txtNomeDC.Text) || string.IsNullOrEmpty(txtUserDC.Text) || string.IsNullOrEmpty(txtPassDC.Password) || cmb_CursoDC.SelectedItem == null)
                     {
@@ -226,7 +217,6 @@ namespace DCGest
                 {
                     try
                     {
-                        // 1. Inserir em Autenticacao com BCrypt
                         string passHash = BCrypt.Net.BCrypt.HashPassword(txtPassDC.Password);
                         string sqlAut = "INSERT INTO autenticacao (Utilizador, PalavraPasse) VALUES (@user, @pass); SELECT LAST_INSERT_ID();";
                         int codAut;
@@ -237,7 +227,6 @@ namespace DCGest
                             codAut = Convert.ToInt32(cmdAut.ExecuteScalar());
                         }
 
-                        // 2. Inserir em Diretor_Curso
                         string sqlDC = "INSERT INTO diretor_curso (Nome_DC, Cod_Curso, Cod_Aut) VALUES (@nome, @curso, @aut)";
                         using (MySqlCommand cmdDC = new MySqlCommand(sqlDC, conn, trans))
                         {

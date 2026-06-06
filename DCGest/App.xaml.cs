@@ -4,9 +4,6 @@ using System.Windows;
 
 namespace DCGest
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
     }

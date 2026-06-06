@@ -9,14 +9,12 @@
       Title="Lista de Alunos" Background="#F3F5F9" FontFamily="Segoe UI">
 
     <Grid>
-        <!-- CONTEÚDO BASE -->
         <Grid Margin="20">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="260"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Painel de Filtros -->
             <Border Grid.Column="0" Background="White" CornerRadius="15" Padding="20" BorderBrush="#E0E6ED" BorderThickness="1" Margin="0,0,20,0">
                 <StackPanel>
                     <TextBlock Text="Filtrar alunos" FontSize="20" FontWeight="Bold" Foreground="#293472" Margin="0,0,0,20"/>
@@ -38,7 +36,6 @@
                 </StackPanel>
             </Border>
 
-            <!-- Grelha Central -->
             <Grid Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -46,7 +43,6 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Top Bar da Grelha corrigida -->
                 <Grid Grid.Row="0" Margin="0,0,0,20">
                     <TextBlock Text="Listagem Escolar" FontSize="28" FontWeight="Bold" Foreground="#1A2E52" VerticalAlignment="Center" HorizontalAlignment="Left"/>
                     <Button Name="Btn_AbrirOverlay" Content="Mudar de Curso 🔍" Width="160" Height="36" FontSize="13" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" HorizontalAlignment="Right" Cursor="Hand" Click="Btn_Click_AbrirSeleciona"/>
@@ -96,7 +92,6 @@
             </Grid>
         </Grid>
 
-        <!-- OVERLAY -->
         <Border Name="Overlay" Background="#99000000" Visibility="Visible">
             <Border Background="White" Width="500" Height="450" CornerRadius="20" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="40">
                 <StackPanel>

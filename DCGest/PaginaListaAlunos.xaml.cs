@@ -18,9 +18,6 @@ using DCGest.Classes;
 
 namespace DCGest
 {
-    /// <summary>
-    /// Interação lógica para PaginaListaAlunos.xam
-    /// </summary>
     public partial class PaginaListaAlunos : Page
     {
         public PaginaListaAlunos()
@@ -34,7 +31,6 @@ namespace DCGest
         string caminho = BD.CaminhoBD;
 
 
-        // Listas
         List<AnoLetivo> listaAnos = new List<AnoLetivo>();
         List<Curso> listaCursos = new List<Curso>();
         List<Turma> listaTurmas = new List<Turma>();
@@ -73,28 +69,24 @@ namespace DCGest
         {
             try
             {
-                // Ano-Letivo
                 listaAnos = AnoLetivo.ObterTodos();
                 listaAnos.Insert(0, new AnoLetivo(0, "Todos"));
                 cmb_anoletivo.ItemsSource = null;
                 cmb_anoletivo.ItemsSource = listaAnos;
                 cmb_anoletivo.SelectedIndex = 0;
 
-                // Curso
                 listaCursos = Curso.ObterTodos();
                 listaCursos.Insert(0, new Curso(0, "Todos"));
                 cmb_curso.ItemsSource = null;
                 cmb_curso.ItemsSource = listaCursos;
                 cmb_curso.SelectedIndex = 0;
 
-                // Turma
                 listaTurmas = Turma.ObterTodas();
                 listaTurmas.Insert(0, new Turma(0, "*"));
                 cmb_turma.ItemsSource = null;
                 cmb_turma.ItemsSource = listaTurmas;
                 cmb_turma.SelectedIndex = 0;
 
-                // Orientador
                 listaOrientadores = Orientador.ObterTodos();
                 listaOrientadores.Insert(0, new Orientador(0, "Todos"));
                 cmb_orientador.ItemsSource = null;
@@ -359,7 +351,7 @@ namespace DCGest
                     JanelaEditaAluno janela = new JanelaEditaAluno(selecionado.Cod_Aluno);
                     if (janela.ShowDialog() == true)
                     {
-                        CarregarAlunos(); // Atualiza a lista se houve alteração
+                        CarregarAlunos();
                     }
                 }
                 else

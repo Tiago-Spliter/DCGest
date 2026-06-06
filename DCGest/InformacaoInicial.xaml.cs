@@ -15,9 +15,6 @@ using System.Windows.Shapes;
 
 namespace DCGest
 {
-    /// <summary>
-    /// Interação lógica para InformacaoInicial.xam
-    /// </summary>
     public partial class InformacaoInicial : Page
     {
         public InformacaoInicial()

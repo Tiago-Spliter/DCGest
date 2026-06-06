@@ -11,7 +11,6 @@ namespace DCGest
         string caminho = BD.CaminhoBD;
         int idAluno;
 
-        // Listas 
         List<Turma> listaTurmas = new List<Turma>();
         List<Curso> listaCursos = new List<Curso>();
         List<Orientador> listaOrientadores = new List<Orientador>();
@@ -28,7 +27,6 @@ namespace DCGest
         {
             try
             {
-                // 1. Carregar Combos usando métodos estáticos
                 listaTurmas = Turma.ObterTodas();
                 cmb_turma.ItemsSource = listaTurmas;
                 cmb_turma.DisplayMemberPath = "Nome";
@@ -54,7 +52,6 @@ namespace DCGest
                 {
                     conn.Open();
 
-                    // 2. Buscar dados do aluno para preencher os campos
                     string sql_Aluno = "SELECT * FROM aluno WHERE Cod_Aluno = @id";
                     using (MySqlCommand cmd = new MySqlCommand(sql_Aluno, conn))
                     {

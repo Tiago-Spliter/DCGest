@@ -19,7 +19,6 @@
                     <ColumnDefinition Width="450"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Informações do Diretor -->
                 <Border Grid.Column="0" Background="White" CornerRadius="20" Padding="40" BorderBrush="#E0E6ED" BorderThickness="1" Margin="0,0,15,0">
                     <StackPanel>
                         <TextBlock Text="Dados Pessoais" FontSize="20" FontWeight="Bold" Foreground="#293472" Margin="0,0,0,25"/>
@@ -35,7 +34,6 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Alterar Password -->
                 <Border Grid.Column="1" Background="White" CornerRadius="20" Padding="40" BorderBrush="#E0E6ED" BorderThickness="1" Margin="15,0,0,0">
                     <StackPanel>
                         <TextBlock Text="Segurança" FontSize="20" FontWeight="Bold" Foreground="#293472" Margin="0,0,0,25"/>

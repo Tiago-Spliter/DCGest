@@ -13,7 +13,6 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Menu Lateral -->
         <Border Grid.Column="0" Background="#293472">
             <Grid>
                 <Grid.RowDefinitions>
@@ -22,7 +21,6 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0">
-                    <!-- Cabeçalho do Menu -->
                     <StackPanel Margin="0,45,0,40">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <Border Background="White" CornerRadius="12" Padding="8" Width="55" Height="55">
@@ -37,13 +35,12 @@
                         <Rectangle Height="1" Fill="#3E4989" Margin="30,35,30,0"/>
                     </StackPanel>
 
-                    <!-- Navegação -->
                     <Button Name="btN_Inicial" Content="Página inicial" Height="60" FontSize="17" FontWeight="SemiBold" Foreground="White" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left" Padding="30,0" Cursor="Hand" Click="Btn_Click_PaginaInicial"/>
                     <Button Name="btn_Lista" Content="Lista de alunos" Height="60" FontSize="17" FontWeight="SemiBold" Foreground="#D0D6E2" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left" Padding="30,0" Cursor="Hand" Click="Btn_Click_PaginaListaAlunos"/>
                     <Button Name="btn_Adiciona" Content="Novo registo" Height="60" FontSize="17" FontWeight="SemiBold" Foreground="#D0D6E2" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left" Padding="30,0" Cursor="Hand" Click="Btn_Click_PaginaAdiciona"/>
+                    <Button Name="btn_Alineas" Content="Alíneas" Height="60" FontSize="17" FontWeight="SemiBold" Foreground="#D0D6E2" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left" Padding="30,0" Cursor="Hand" Click="Btn_Click_PaginaAlineas"/>
                 </StackPanel>
 
-                <!-- Logout (Fundo do menu) -->
                 <StackPanel Grid.Row="1" Margin="0,0,0,30">
                     <Rectangle Height="1" Fill="#3E4989" Margin="30,0,30,10"/>
                     <Button Name="btn_Logout" Content="Sair / Logout" Height="60" FontSize="17" FontWeight="SemiBold" Foreground="#FF8A8A" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left" Padding="30,0" Cursor="Hand" Click="Btn_Click_Logout"/>
@@ -51,14 +48,12 @@
             </Grid>
         </Border>
 
-        <!-- Área Principal -->
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="80"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Barra Superior -->
             <Border Grid.Row="0" Background="White" BorderBrush="#E0E6ED" BorderThickness="0,0,0,1">
                 <Grid Margin="30,0">
                     <TextBlock Text="Bem-vindo ao Sistema de Gestão" VerticalAlignment="Center" FontSize="18" Foreground="#5A6478" FontWeight="Medium"/>
@@ -76,7 +71,6 @@
                 </Grid>
             </Border>
 
-            <!-- Frame -->
             <Frame Name="frm" Grid.Row="1" NavigationUIVisibility="Hidden" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         </Grid>
     </Grid>

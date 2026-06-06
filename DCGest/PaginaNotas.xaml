@@ -13,7 +13,6 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
         <Border Grid.Row="0" Background="#293472">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <Image Source="/Logo/DCGest.png" Width="60" Height="60" Margin="30,0,20,0" Stretch="Uniform"/>
@@ -33,21 +32,18 @@
 
             <TextBlock Grid.Row="0" Text="Registo de Avaliações" FontSize="32" FontWeight="Bold" Foreground="#1A2E52" Margin="0,0,0,20"/>
 
-            <!-- Filtro de Anos -->
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,20">
                 <Button Name="btn_ano1" Content="1º Ano" Width="120" Height="40" FontSize="16" FontWeight="SemiBold" Foreground="White" Background="#293472" BorderThickness="0" Cursor="Hand" Click="Btn_Click_Ano1"/>
                 <Button Name="btn_ano2" Content="2º Ano" Width="120" Height="40" FontSize="16" FontWeight="SemiBold" Foreground="#293472" Background="White" BorderThickness="1" BorderBrush="#293472" Margin="10,0,0,0" Cursor="Hand" Click="Btn_Click_Ano2"/>
                 <Button Name="btn_ano3" Content="3º Ano" Width="120" Height="40" FontSize="16" FontWeight="SemiBold" Foreground="#293472" Background="White" BorderThickness="1" BorderBrush="#293472" Margin="10,0,0,0" Cursor="Hand" Click="Btn_Click_Ano3"/>
             </StackPanel>
 
-            <!-- Área de Tabelas Lado a Lado -->
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="650"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Esquerda: DataGrid Notas (Módulos) -->
                 <StackPanel Grid.Column="0" Margin="0,0,15,0">
                     <TextBlock Text="Detalhe por Módulo" FontSize="18" FontWeight="Bold" Foreground="#5A6478" Margin="0,0,0,10"/>
                     <DataGrid Name="dg_alunos" AutoGenerateColumns="False" CanUserAddRows="False" RowHeight="35" FontSize="13" Background="White" BorderBrush="#E0E6ED" BorderThickness="1" HorizontalGridLinesBrush="#F3F5F9" VerticalGridLinesBrush="#F3F5F9" Height="400">
@@ -75,13 +71,41 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Disciplina" Binding="{Binding NomeDisciplina}" IsReadOnly="True" Width="250"/>
                             <DataGridTextColumn Header="Módulo" Binding="{Binding NomeModulo}" IsReadOnly="True" Width="*"/>
-                            <DataGridTextColumn Header="Nota" Binding="{Binding Valor, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
+                            <DataGridTemplateColumn Header="Alínea" Width="70">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ComboBox ItemsSource="{Binding ListaAlineas, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  SelectedValue="{Binding Cod_Estado}"
+                                                  SelectedValuePath="Cod_Alinea"
+                                                  DisplayMemberPath="AlineaLetra"
+                                                  IsEnabled="False"
+                                                  BorderThickness="0"
+                                                  Background="Transparent"
+                                                  VerticalContentAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox ItemsSource="{Binding ListaAlineas, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  SelectedValue="{Binding Cod_Estado, UpdateSourceTrigger=PropertyChanged}"
+                                                  SelectedValuePath="Cod_Alinea"
+                                                  DisplayMemberPath="Display"
+                                                  VerticalContentAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Nota" Binding="{Binding Valor, UpdateSourceTrigger=PropertyChanged}" Width="80">
+                                <DataGridTextColumn.EditingElementStyle>
+                                    <Style TargetType="TextBox">
+                                        <Setter Property="MaxLength" Value="2"/>
+                                    </Style>
+                                </DataGridTextColumn.EditingElementStyle>
+                            </DataGridTextColumn>
                             <DataGridTextColumn Header="Data" Binding="{Binding Data_Efetua, StringFormat=dd/MM/yyyy}" IsReadOnly="True" Width="120"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </StackPanel>
 
-                <!-- Direita: DataGrid Médias (Resumo) -->
                 <StackPanel Grid.Column="1" Margin="15,0,0,0">
                     <TextBlock Text="Resumo por Disciplina" FontSize="18" FontWeight="Bold" Foreground="#5A6478" Margin="0,0,0,10"/>
                     <DataGrid Name="dg_medias" IsReadOnly="True" AutoGenerateColumns="False" RowHeight="35" FontSize="13" Background="White" BorderBrush="#E0E6ED" BorderThickness="1" HorizontalGridLinesBrush="#F3F5F9" VerticalGridLinesBrush="#F3F5F9" Height="400">
@@ -131,7 +155,6 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Baixo: Resultados Finais -->
             <Border Grid.Row="3" Background="White" CornerRadius="15" Padding="20" BorderBrush="#E0E6ED" BorderThickness="1" Margin="0,20,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -142,7 +165,6 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Médias -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center">
                         <StackPanel Margin="10,0">
                             <TextBlock Text="Geral" FontSize="12" Foreground="#5A6478" HorizontalAlignment="Center"/>
@@ -160,7 +182,6 @@
 
                     <Rectangle Grid.Column="1" Width="1" Fill="#E0E6ED" Margin="30,0"/>
 
-                    <!-- FCT e PAP -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center">
                         <StackPanel Margin="15,0">
                             <TextBlock Text="Nota FCT" FontSize="12" Foreground="#5A6478" HorizontalAlignment="Center"/>
@@ -174,7 +195,6 @@
 
                     <Rectangle Grid.Column="3" Width="1" Fill="#E0E6ED" Margin="30,0"/>
 
-                    <!-- Média Final -->
                     <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Center">
                         <TextBlock Text="MÉDIA FINAL:" VerticalAlignment="Center" Foreground="#1A2E52" FontWeight="Black" FontSize="16" Margin="0,0,15,0"/>
                         <Border Background="#293472" CornerRadius="8" Padding="15,5">
@@ -184,9 +204,9 @@
                 </Grid>
             </Border>
 
-            <!-- Botões de Ação -->
             <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,30,0,0">
                 <Button Content="Guardar Alterações" Width="220" Height="45" FontSize="16" FontWeight="Bold" Foreground="White" Background="#293472" BorderThickness="0" Cursor="Hand" Click="Btn_Click_Editar" Margin="0,0,15,0"/>
+                <Button Content="Legenda de Alíneas" Width="190" Height="45" FontSize="16" FontWeight="SemiBold" Foreground="#293472" Background="#EFE6D8" BorderThickness="0" Cursor="Hand" Click="Btn_Click_Legenda" Margin="0,0,15,0"/>
                 <Button Content="Fechar Janela" Width="150" Height="45" FontSize="16" FontWeight="SemiBold" Foreground="#5A6478" Background="#F3F5F9" BorderThickness="0" Cursor="Hand" Click="Btn_Click_Voltar"/>
             </StackPanel>
         </Grid>
